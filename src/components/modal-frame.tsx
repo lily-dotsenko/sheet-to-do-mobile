@@ -33,13 +33,19 @@ export function ModalFrame({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboard}
       >
-        <Pressable accessibilityRole="button" onPress={onClose} style={styles.overlay}>
-          <Pressable accessibilityRole="none" onPress={() => undefined} style={styles.sheet}>
+        <View style={styles.overlay}>
+          <Pressable
+            accessibilityLabel="Закрити / Close"
+            accessibilityRole="button"
+            onPress={onClose}
+            style={styles.backdrop}
+          />
+          <View style={styles.sheet}>
             <View style={styles.handle} />
             <View style={styles.header}>
               <Text style={styles.title}>{title}</Text>
               <Pressable
-                accessibilityLabel={onClose.name || 'Close'}
+                accessibilityLabel="Закрити / Close"
                 accessibilityRole="button"
                 hitSlop={8}
                 onPress={onClose}
@@ -55,8 +61,8 @@ export function ModalFrame({
             >
               {children}
             </ScrollView>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -66,9 +72,16 @@ const styles = StyleSheet.create({
   keyboard: { flex: 1 },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(21, 26, 38, 0.62)',
     justifyContent: 'flex-end',
     paddingTop: 48,
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'rgba(21, 26, 38, 0.62)',
   },
   sheet: {
     width: '100%',

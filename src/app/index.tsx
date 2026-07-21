@@ -153,7 +153,7 @@ function showTransferError(
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  background: { flex: 1, backgroundColor: '#f2d4c4' },
+  background: { flex: 1, width: '100%', height: '100%', backgroundColor: '#f2d4c4' },
   safeArea: { flex: 1 },
   content: {
     width: '100%',

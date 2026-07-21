@@ -10,14 +10,17 @@
     "android": {
       "package": "com.lilydotsenko.sheettodo",
       "versionCode": 1,
-      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "backgroundColor": "#F39874",
         "foregroundImage": "./assets/branding/app-icon.png"
       },
       "predictiveBackGestureEnabled": true,
       "permissions": [],
-      "blockedPermissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"]
+      "blockedPermissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "plugins": [
       "expo-router",
