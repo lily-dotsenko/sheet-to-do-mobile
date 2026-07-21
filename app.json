@@ -46,6 +46,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6652be6e-05ea-4223-9ebe-48433fb43e62"
+      }
+    },
+    "owner": "sugar4vaders-team"
   }
 }
