@@ -1,12 +1,12 @@
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+
+import { AppProvider } from '@/state/app-context';
 
 export default function RootLayout() {
   return (
-    <>
+    <AppProvider>
       <Stack screenOptions={{ headerShown: false }} />
-      <StatusBar style="dark" />
-    </>
+    </AppProvider>
   );
 }
