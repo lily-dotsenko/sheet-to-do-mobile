@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Sheet: to do",
+    "slug": "sheet-to-do",
+    "version": "0.1.0",
+    "orientation": "default",
+    "icon": "./assets/branding/app-icon.png",
+    "scheme": "sheettodo",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.lilydotsenko.sheettodo",
+      "versionCode": 1,
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#F39874",
+        "foregroundImage": "./assets/branding/app-icon.png"
+      },
+      "predictiveBackGestureEnabled": true,
+      "permissions": [],
+      "blockedPermissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "expo-localization",
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F7D5C4",
+          "image": "./assets/branding/app-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
