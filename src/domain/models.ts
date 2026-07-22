@@ -1,4 +1,4 @@
-export const DATA_VERSION = 1 as const;
+export const DATA_VERSION = 2 as const;
 export const MAX_LIST_TITLE_LENGTH = 60;
 export const MAX_TASK_TEXT_LENGTH = 160;
 export const MAX_LISTS = 100;
@@ -7,12 +7,14 @@ export const MAX_TASKS_PER_LIST = 500;
 export type Language = 'uk' | 'en';
 export type ThemeId = 'twilight' | 'winter' | 'spring' | 'autumn';
 
-export type PhotoAttachment = {
+export type LocalImageAttachment = {
   uri: string;
   width: number;
   height: number;
   mimeType: 'image/jpeg';
 };
+
+export type PhotoAttachment = LocalImageAttachment;
 
 export type Task = {
   id: string;
@@ -32,6 +34,7 @@ export type TaskList = {
 
 export type AppPreferences = {
   themeId: ThemeId;
+  customBackground: LocalImageAttachment | null;
   language: Language | null;
 };
 
@@ -95,7 +98,7 @@ export function createEmptyData(now = new Date().toISOString()): AppData {
   return {
     version: DATA_VERSION,
     lists: [],
-    preferences: { themeId: 'twilight', language: null },
+    preferences: { themeId: 'twilight', customBackground: null, language: null },
     updatedAt: now,
   };
 }

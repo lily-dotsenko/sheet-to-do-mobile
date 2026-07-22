@@ -5,6 +5,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { PhotoAttachment, createId } from '@/domain/models';
 
 import { PhotoFilePort } from './photo-cleanup';
+import { ParsedPackagePhoto } from './list-package';
+import { PackagePhotoImportPort } from './package-photo-import';
 
 const PHOTO_DIRECTORY = 'task-photos';
 const MAX_PHOTO_EDGE = 1600;
@@ -12,7 +14,7 @@ const MAX_PHOTO_EDGE = 1600;
 export type PickPhotoResult =
   { status: 'picked'; photo: PhotoAttachment } | { status: 'cancelled' };
 
-export class PhotoFileStore implements PhotoFilePort {
+export class PhotoFileStore implements PhotoFilePort, PackagePhotoImportPort {
   async pickAndSave(): Promise<PickPhotoResult> {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -54,6 +56,25 @@ export class PhotoFileStore implements PhotoFilePort {
 
   async exists(uri: string): Promise<boolean> {
     return this.isManagedUri(uri) && new File(uri).exists;
+  }
+
+  async read(uri: string): Promise<Uint8Array | null> {
+    if (!(await this.exists(uri))) return null;
+    return new File(uri).bytes();
+  }
+
+  async save(photo: ParsedPackagePhoto): Promise<PhotoAttachment> {
+    const directory = this.directory();
+    directory.create({ intermediates: true, idempotent: true });
+    const destination = new File(directory, `task-${createId()}.jpg`);
+    destination.create({ intermediates: true, overwrite: false });
+    destination.write(photo.bytes);
+    return {
+      uri: destination.uri,
+      width: photo.width,
+      height: photo.height,
+      mimeType: 'image/jpeg',
+    };
   }
 
   async delete(uri: string): Promise<void> {

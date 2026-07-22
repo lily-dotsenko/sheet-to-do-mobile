@@ -22,9 +22,18 @@ import { ShareListModal } from '@/components/share-list-modal';
 import { ThemePickerModal } from '@/components/theme-picker-modal';
 import { TaskList } from '@/domain/models';
 import { importErrorTranslationKey } from '@/i18n/translations';
-import { useApp } from '@/state/app-context';
 import { ListImportError } from '@/services/list-transfer';
-import { pickListJson, shareListAsDeepLink, shareListAsJson } from '@/services/native-transfer';
+import {
+  listTextLabels,
+  pickListImport,
+  shareListAsDeepLink,
+  shareListAsJson,
+  shareListAsPackage,
+  shareListAsText,
+} from '@/services/native-transfer';
+import { attachPackagePhotos, deleteListPhotos } from '@/services/package-photo-import';
+import { photoFiles } from '@/services/photo-files';
+import { useApp } from '@/state/app-context';
 import { getTheme } from '@/theme/themes';
 
 export default function HomeScreen() {
@@ -35,6 +44,7 @@ export default function HomeScreen() {
   const [themesVisible, setThemesVisible] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [shareList, setShareList] = useState<TaskList | null>(null);
+  const [transferBusy, setTransferBusy] = useState(false);
 
   useEffect(() => {
     if (!notice) return;
@@ -43,49 +53,68 @@ export default function HomeScreen() {
     });
   }, [dismissNotice, notice, t]);
 
-  if (!data) {
+  if (!data)
     return (
       <View style={styles.loading}>
         <ActivityIndicator color="#c45e43" size="large" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
       </View>
     );
-  }
-
-  const theme = getTheme(data.preferences.themeId);
+  const theme = getTheme(data.preferences.themeId, data.preferences.customBackground);
 
   const handleImport = async () => {
+    setTransferBusy(true);
     try {
-      const list = await pickListJson();
-      if (!list) return;
-      Alert.alert(
-        t('importTitle'),
-        t('importBody', { name: list.title, total: list.tasks.length }),
-        [
-          { text: t('cancel'), style: 'cancel' },
-          { text: t('importConfirm'), onPress: () => importList(list) },
-        ],
-      );
+      const picked = await pickListImport();
+      if (!picked) return;
+      const baseBody =
+        picked.kind === 'package'
+          ? t('importPackageBody', {
+              name: picked.list.title,
+              total: picked.list.tasks.length,
+              photos: picked.photos.length,
+            })
+          : t('importBody', { name: picked.list.title, total: picked.list.tasks.length });
+      const body =
+        picked.missingPhotos > 0
+          ? `${baseBody}\n\n${t('importMissingPhotos', { count: picked.missingPhotos })}`
+          : baseBody;
+      Alert.alert(t('importTitle'), body, [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('importConfirm'), onPress: () => void finalizeImport(picked) },
+      ]);
     } catch (error) {
       showTransferError(error, t);
+    } finally {
+      setTransferBusy(false);
     }
   };
 
-  const handleShareFile = async (list: TaskList) => {
-    setShareList(null);
+  const finalizeImport = async (
+    picked: NonNullable<Awaited<ReturnType<typeof pickListImport>>>,
+  ) => {
+    setTransferBusy(true);
+    let importedList = picked.list;
     try {
-      await shareListAsJson(list, t('shareList'));
-    } catch {
-      Alert.alert(t('attention'), t('shareError'));
+      if (picked.kind === 'package')
+        importedList = await attachPackagePhotos(picked.list, picked.photos, photoFiles);
+      if (!importList(importedList)) await deleteListPhotos(importedList, photoFiles);
+    } catch (error) {
+      showTransferError(error, t);
+    } finally {
+      setTransferBusy(false);
     }
   };
 
-  const handleShareLink = async (list: TaskList) => {
-    setShareList(null);
+  const runShare = async (operation: () => Promise<void>) => {
+    setTransferBusy(true);
     try {
-      await shareListAsDeepLink(list, t('shareList'));
+      await operation();
+      setShareList(null);
     } catch (error) {
       showTransferError(error, t, 'shareError');
+    } finally {
+      setTransferBusy(false);
     }
   };
 
@@ -112,6 +141,7 @@ export default function HomeScreen() {
             ListEmptyComponent={<EmptyState />}
             ListHeaderComponent={
               <HomeHeader
+                busyImport={transferBusy}
                 onCreate={() => setCreateVisible(true)}
                 onImport={() => void handleImport()}
                 onThemes={() => setThemesVisible(true)}
@@ -130,12 +160,33 @@ export default function HomeScreen() {
       </SafeAreaView>
 
       <CreateListModal onClose={() => setCreateVisible(false)} visible={createVisible} />
-      <ThemePickerModal onClose={() => setThemesVisible(false)} visible={themesVisible} />
+      <ThemePickerModal
+        onClose={() => setThemesVisible(false)}
+        onViewCustom={(uri) => {
+          setThemesVisible(false);
+          setPhotoUri(uri);
+        }}
+        visible={themesVisible}
+      />
       <ShareListModal
+        busy={transferBusy}
         list={shareList}
         onClose={() => setShareList(null)}
-        onShareFile={(list) => void handleShareFile(list)}
-        onShareLink={(list) => void handleShareLink(list)}
+        onShareFile={(list) => void runShare(() => shareListAsJson(list, t('shareList')))}
+        onShareLink={(list) => void runShare(() => shareListAsDeepLink(list, t('shareList')))}
+        onSharePackage={(list) =>
+          void runShare(async () => {
+            const result = await shareListAsPackage(list, t('shareList'));
+            if (result.omittedPhotos > 0)
+              Alert.alert(
+                t('attention'),
+                t('packagePhotosOmitted', { count: result.omittedPhotos }),
+              );
+          })
+        }
+        onShareText={(list) =>
+          void runShare(() => shareListAsText(list, t('shareList'), listTextLabels(list, t)))
+        }
       />
       <PhotoViewerModal onClose={() => setPhotoUri(null)} uri={photoUri} />
     </ImageBackground>

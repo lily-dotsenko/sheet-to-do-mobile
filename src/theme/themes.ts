@@ -1,6 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
 
-import { ThemeId } from '@/domain/models';
+import { LocalImageAttachment, ThemeId } from '@/domain/models';
 import { TranslationKey } from '@/i18n/translations';
 
 export type ThemeDefinition = {
@@ -47,6 +47,17 @@ export const THEMES: ThemeDefinition[] = [
   },
 ];
 
-export function getTheme(themeId: ThemeId): ThemeDefinition {
-  return THEMES.find((theme) => theme.id === themeId) ?? THEMES[0];
+export function getTheme(
+  themeId: ThemeId,
+  customBackground: LocalImageAttachment | null = null,
+): ThemeDefinition {
+  const theme = THEMES.find((item) => item.id === themeId) ?? THEMES[0];
+  if (!customBackground) return theme;
+  return {
+    ...theme,
+    image: { uri: customBackground.uri },
+    titleColor: '#fffaf4',
+    scrim: 'rgba(18, 25, 38, 0.38)',
+    statusBar: 'light',
+  };
 }

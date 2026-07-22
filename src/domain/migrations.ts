@@ -2,9 +2,9 @@ import {
   AppData,
   DATA_VERSION,
   Language,
+  LocalImageAttachment,
   MAX_LISTS,
   MAX_TASKS_PER_LIST,
-  PhotoAttachment,
   Task,
   TaskList,
   ThemeId,
@@ -47,7 +47,10 @@ export function migrateStoredData(raw: unknown, now = new Date().toISOString()):
     throw new MigrationError('Stored data must be an object');
   }
   if (raw.version === DATA_VERSION) {
-    return parseVersionOne(raw);
+    return parseVersionTwo(raw);
+  }
+  if (raw.version === 1) {
+    return migrateVersionOne(raw);
   }
   if (raw.version === 0 || raw.version === undefined) {
     const lists = Array.isArray(raw.lists) ? raw.lists : [];
@@ -56,7 +59,7 @@ export function migrateStoredData(raw: unknown, now = new Date().toISOString()):
   throw new MigrationError('Unsupported data version');
 }
 
-function parseVersionOne(raw: Record<string, unknown>): AppData {
+function parseVersionTwo(raw: Record<string, unknown>): AppData {
   if (!Array.isArray(raw.lists) || raw.lists.length > MAX_LISTS) {
     throw new MigrationError('Invalid lists');
   }
@@ -64,11 +67,31 @@ function parseVersionOne(raw: Record<string, unknown>): AppData {
     throw new MigrationError('Invalid preferences');
   }
   const themeId = parseTheme(raw.preferences.themeId);
+  const customBackground = parseLocalImage(raw.preferences.customBackground);
   const language = parseLanguage(raw.preferences.language);
   return {
     version: DATA_VERSION,
     lists: raw.lists.map(parseList),
-    preferences: { themeId, language },
+    preferences: { themeId, customBackground, language },
+    updatedAt: parseDate(raw.updatedAt),
+  };
+}
+
+function migrateVersionOne(raw: Record<string, unknown>): AppData {
+  if (!Array.isArray(raw.lists) || raw.lists.length > MAX_LISTS) {
+    throw new MigrationError('Invalid lists');
+  }
+  if (!isRecord(raw.preferences)) {
+    throw new MigrationError('Invalid preferences');
+  }
+  return {
+    version: DATA_VERSION,
+    lists: raw.lists.map(parseList),
+    preferences: {
+      themeId: parseTheme(raw.preferences.themeId),
+      customBackground: null,
+      language: parseLanguage(raw.preferences.language),
+    },
     updatedAt: parseDate(raw.updatedAt),
   };
 }
@@ -89,6 +112,7 @@ function migrateLegacyLists(
     lists: rawLists.map((raw) => parseLegacyList(raw, now)),
     preferences: {
       themeId: legacyTheme ?? parseTheme(container.themeId, 'twilight'),
+      customBackground: null,
       language: parseLanguage(container.language, null),
     },
   };
@@ -140,7 +164,7 @@ function parseTask(value: unknown): Task {
     id: parseNonEmptyString(value.id, 100),
     text: parseNonEmptyString(value.text, 160),
     completed: value.completed,
-    photo: parsePhoto(value.photo),
+    photo: parseLocalImage(value.photo),
     createdAt: parseDate(value.createdAt),
   };
 }
@@ -154,12 +178,12 @@ function parseLegacyTask(value: unknown, now: string): Task {
     text: parseNonEmptyString(value.text, 160),
     completed: typeof value.completed === 'boolean' ? value.completed : value.done === true,
     // Browser base64 images cannot safely become durable files during a synchronous migration.
-    photo: isRecord(value.photo) ? parsePhoto(value.photo) : null,
+    photo: isRecord(value.photo) ? parseLocalImage(value.photo) : null,
     createdAt: typeof value.createdAt === 'string' ? parseDate(value.createdAt) : now,
   };
 }
 
-function parsePhoto(value: unknown): PhotoAttachment | null {
+function parseLocalImage(value: unknown): LocalImageAttachment | null {
   if (value === null || value === undefined) return null;
   if (!isRecord(value)) throw new MigrationError('Invalid photo');
   const uri = parseNonEmptyString(value.uri, 1000);

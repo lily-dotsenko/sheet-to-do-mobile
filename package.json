@@ -1,7 +1,7 @@
 {
   "name": "sheet-to-do-mobile",
   "main": "expo-router/entry",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~57.0.7",
@@ -19,6 +19,7 @@
     "expo-splash-screen": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.1",
+    "fflate": "^0.8.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.0",

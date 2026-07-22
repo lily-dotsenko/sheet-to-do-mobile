@@ -11,11 +11,13 @@ export function HomeHeader({
   onCreate,
   onImport,
   onThemes,
+  busyImport = false,
 }: {
   theme: ThemeDefinition;
   onCreate: () => void;
   onImport: () => void;
   onThemes: () => void;
+  busyImport?: boolean;
 }) {
   const { language, setLanguage, t } = useApp();
   const nextLanguage: Language = language === 'uk' ? 'en' : 'uk';
@@ -25,7 +27,7 @@ export function HomeHeader({
       <Text style={[styles.subtitle, { color: theme.titleColor }]}>{t('appSubtitle')}</Text>
       <View style={styles.actions}>
         <ActionButton icon="＋" label={t('addList')} onPress={onCreate} variant="primary" />
-        <ActionButton icon="⇩" label={t('importList')} onPress={onImport} />
+        <ActionButton icon="⇩" label={t('importList')} loading={busyImport} onPress={onImport} />
         <ActionButton icon="🎨" label={t('themes')} onPress={onThemes} />
         <ActionButton label={t('switchLanguage')} onPress={() => setLanguage(nextLanguage)} />
       </View>

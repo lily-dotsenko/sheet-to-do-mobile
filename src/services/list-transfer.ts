@@ -17,7 +17,13 @@ type ExportEnvelope = {
   };
 };
 
-export type ImportErrorCode = 'invalidJson' | 'invalidFormat' | 'unsupportedVersion' | 'tooLarge';
+export type ImportErrorCode =
+  | 'invalidJson'
+  | 'invalidFormat'
+  | 'unsupportedVersion'
+  | 'tooLarge'
+  | 'invalidArchive'
+  | 'unsafeArchive';
 
 export class ListImportError extends Error {
   constructor(readonly code: ImportErrorCode) {
@@ -38,6 +44,16 @@ export function serializeList(list: TaskList, pretty = true): string {
     },
   };
   return JSON.stringify(envelope, null, pretty ? 2 : 0);
+}
+
+export function formatListAsText(
+  list: TaskList,
+  labels: { progress: string; empty: string },
+): string {
+  const tasks = list.tasks.map((task) => `${task.completed ? '[✓]' : '[ ]'} ${task.text}`);
+  return [list.title, labels.progress, '', ...(tasks.length > 0 ? tasks : [labels.empty])].join(
+    '\n',
+  );
 }
 
 export function parseListJson(json: string): TaskList {

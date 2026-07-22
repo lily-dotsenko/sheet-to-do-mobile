@@ -29,6 +29,8 @@ import {
 } from '@/domain/models';
 import { TranslationKey, translate } from '@/i18n/translations';
 import { appStorage } from '@/services/native-storage';
+import { backgroundFiles } from '@/services/background-files';
+import { removeLocalImage, replaceLocalImage } from '@/services/local-image-lifecycle';
 import { deletePhotoSafely } from '@/services/photo-cleanup';
 import { photoFiles } from '@/services/photo-files';
 
@@ -39,6 +41,7 @@ type AppContextValue = {
   language: Language;
   notice: Notice | null;
   busyPhotoTaskId: string | null;
+  busyBackground: boolean;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   dismissNotice: () => void;
   createList: (title: string, iconId: string) => void;
@@ -49,8 +52,10 @@ type AppContextValue = {
   attachPhoto: (listId: string, taskId: string) => Promise<void>;
   removePhoto: (listId: string, taskId: string) => Promise<void>;
   clearMissingPhoto: (listId: string, taskId: string) => void;
-  importList: (list: TaskList) => void;
-  setTheme: (themeId: ThemeId) => void;
+  importList: (list: TaskList) => boolean;
+  setTheme: (themeId: ThemeId) => Promise<void>;
+  pickCustomBackground: () => Promise<void>;
+  removeCustomBackground: () => Promise<void>;
   setLanguage: (language: Language) => void;
 };
 
@@ -63,13 +68,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const dataRef = useRef<AppData | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [busyPhotoTaskId, setBusyPhotoTaskId] = useState<string | null>(null);
+  const [busyBackground, setBusyBackground] = useState(false);
 
   useEffect(() => {
     let active = true;
     void (async () => {
       try {
         const result = await appStorage.load();
-        const scrubbed = await scrubMissingPhotos(result.data);
+        const scrubbed = await scrubMissingFiles(result.data);
         if (!active) return;
         dataRef.current = scrubbed.data;
         setData(scrubbed.data);
@@ -207,25 +213,69 @@ export function AppProvider({ children }: { children: ReactNode }) {
         commit((current) => addList(current, list));
       } catch {
         setNotice('listLimitError');
-        return;
+        return false;
       }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
         () => undefined,
       );
+      return true;
     },
     [commit],
   );
 
   const setTheme = useCallback(
-    (themeId: ThemeId) => {
+    async (themeId: ThemeId) => {
+      const previous = dataRef.current?.preferences.customBackground ?? null;
       commit((current) => ({
         ...current,
-        preferences: { ...current.preferences, themeId },
+        preferences: { ...current.preferences, themeId, customBackground: null },
         updatedAt: new Date().toISOString(),
       }));
+      await removeLocalImage(previous, () => undefined, backgroundFiles);
     },
     [commit],
   );
+
+  const pickCustomBackground = useCallback(async () => {
+    const previous = dataRef.current?.preferences.customBackground ?? null;
+    setBusyBackground(true);
+    try {
+      await replaceLocalImage(
+        previous,
+        () => backgroundFiles.pickAndSave(),
+        (next) =>
+          commit((current) => ({
+            ...current,
+            preferences: { ...current.preferences, customBackground: next },
+            updatedAt: new Date().toISOString(),
+          })),
+        backgroundFiles,
+      );
+    } catch {
+      setNotice('photoError');
+    } finally {
+      setBusyBackground(false);
+    }
+  }, [commit]);
+
+  const removeCustomBackground = useCallback(async () => {
+    const previous = dataRef.current?.preferences.customBackground ?? null;
+    setBusyBackground(true);
+    try {
+      await removeLocalImage(
+        previous,
+        () =>
+          commit((current) => ({
+            ...current,
+            preferences: { ...current.preferences, customBackground: null },
+            updatedAt: new Date().toISOString(),
+          })),
+        backgroundFiles,
+      );
+    } finally {
+      setBusyBackground(false);
+    }
+  }, [commit]);
 
   const setLanguage = useCallback(
     (language: Language) => {
@@ -251,6 +301,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       language,
       notice,
       busyPhotoTaskId,
+      busyBackground,
       t,
       dismissNotice: () => setNotice(null),
       createList,
@@ -263,12 +314,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       clearMissingPhoto,
       importList,
       setTheme,
+      pickCustomBackground,
+      removeCustomBackground,
       setLanguage,
     }),
     [
       addTask,
       attachPhoto,
       busyPhotoTaskId,
+      busyBackground,
       clearMissingPhoto,
       createList,
       data,
@@ -278,6 +332,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       language,
       notice,
       removePhoto,
+      pickCustomBackground,
+      removeCustomBackground,
       setLanguage,
       setTheme,
       t,
@@ -294,7 +350,7 @@ export function useApp(): AppContextValue {
   return value;
 }
 
-async function scrubMissingPhotos(data: AppData): Promise<{ data: AppData; count: number }> {
+async function scrubMissingFiles(data: AppData): Promise<{ data: AppData; count: number }> {
   let count = 0;
   const lists = await Promise.all(
     data.lists.map(async (list) => ({
@@ -308,7 +364,22 @@ async function scrubMissingPhotos(data: AppData): Promise<{ data: AppData; count
       ),
     })),
   );
+  const customBackground = data.preferences.customBackground;
+  const backgroundMissing =
+    customBackground !== null && !(await backgroundFiles.exists(customBackground.uri));
+  if (backgroundMissing) count += 1;
   return count === 0
     ? { data, count }
-    : { data: { ...data, lists, updatedAt: new Date().toISOString() }, count };
+    : {
+        data: {
+          ...data,
+          lists,
+          preferences: {
+            ...data.preferences,
+            customBackground: backgroundMissing ? null : customBackground,
+          },
+          updatedAt: new Date().toISOString(),
+        },
+        count,
+      };
 }
