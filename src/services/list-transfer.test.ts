@@ -3,6 +3,7 @@ import { createTask, createTaskList } from '@/domain/models';
 import {
   ListImportError,
   createImportDeepLink,
+  formatListAsText,
   parseDeepLinkData,
   parseListJson,
   serializeList,
@@ -50,4 +51,14 @@ describe('list import and export', () => {
       expect(() => parseListJson(json)).toThrow(ListImportError);
     },
   );
+
+  test('formats a readable checklist with progress', () => {
+    const list = createTaskList('Weekend', 'home', {
+      tasks: [createTask('Tea', { completed: true }), createTask('Book')],
+    });
+
+    expect(formatListAsText(list, { progress: '1 of 2 complete', empty: 'No tasks' })).toBe(
+      'Weekend\n1 of 2 complete\n\n[✓] Tea\n[ ] Book',
+    );
+  });
 });

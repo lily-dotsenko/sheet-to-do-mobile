@@ -26,4 +26,20 @@ describe('data migrations', () => {
   test('rejects unsupported future data', () => {
     expect(() => migrateStoredData({ version: 999, lists: [] })).toThrow(MigrationError);
   });
+
+  test('migrates version one preferences with no custom background', () => {
+    const migrated = migrateStoredData({
+      version: 1,
+      lists: [],
+      preferences: { themeId: 'winter', language: 'uk' },
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+
+    expect(migrated.version).toBe(DATA_VERSION);
+    expect(migrated.preferences).toEqual({
+      themeId: 'winter',
+      customBackground: null,
+      language: 'uk',
+    });
+  });
 });
