@@ -12,14 +12,15 @@ npx eas-cli@latest build --platform android --profile preview
 
 Очікувана назва локальної копії поточного релізу: `dist/sheet-to-do-0.2.0.apk`.
 
-## Перевірена збірка 0.1.0
+## Перевірена збірка 0.2.0
 
-- EAS build ID: `9d506d0e-aca6-4b3b-ae56-63db8b6b628a`;
+- EAS build ID: `61c084ab-c254-424e-9582-bb52837a2511`;
 - профіль: `preview`, Android internal distribution APK;
-- [сторінка завершеної EAS-збірки](https://expo.dev/accounts/sugar4vaders-team/projects/sheet-to-do/builds/9d506d0e-aca6-4b3b-ae56-63db8b6b628a);
-- локальний файл: `dist/sheet-to-do-0.1.0.apk`;
-- розмір: `107466577` байтів (приблизно 102,49 MiB);
-- SHA-256: `F9CCE15A0448E965F9153EACB1CF90D2953AC1C9743C476A4E2E6F896CA298A8`.
+- версія: `0.2.0`, Android versionCode `2`;
+- [сторінка завершеної EAS-збірки](https://expo.dev/accounts/sugar4vaders-team/projects/sheet-to-do/builds/61c084ab-c254-424e-9582-bb52837a2511);
+- локальний файл: `dist/sheet-to-do-0.2.0.apk`;
+- розмір: `107559437` байтів (приблизно 102,58 MiB);
+- SHA-256: `DF762566123B4B15544F065EBD9C5D1F34CC297DDF615F828025BABD6E8CEF13`.
 
 APK не зберігається в Git. Доступність artifact на EAS обмежена строком зберігання
 internal build, тому для довготривалої передачі використовуй локальну копію та звіряй
