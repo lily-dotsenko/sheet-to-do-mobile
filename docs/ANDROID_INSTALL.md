@@ -12,6 +12,19 @@ npx eas-cli@latest build --platform android --profile preview
 
 Очікувана назва локальної копії: `dist/sheet-to-do-0.1.0.apk`.
 
+## Перевірена збірка 0.1.0
+
+- EAS build ID: `9d506d0e-aca6-4b3b-ae56-63db8b6b628a`;
+- профіль: `preview`, Android internal distribution APK;
+- [сторінка завершеної EAS-збірки](https://expo.dev/accounts/sugar4vaders-team/projects/sheet-to-do/builds/9d506d0e-aca6-4b3b-ae56-63db8b6b628a);
+- локальний файл: `dist/sheet-to-do-0.1.0.apk`;
+- розмір: `107466577` байтів (приблизно 102,49 MiB);
+- SHA-256: `F9CCE15A0448E965F9153EACB1CF90D2953AC1C9743C476A4E2E6F896CA298A8`.
+
+APK не зберігається в Git. Доступність artifact на EAS обмежена строком зберігання
+internal build, тому для довготривалої передачі використовуй локальну копію та звіряй
+її checksum.
+
 ## Перевірка файла перед передачею
 
 На комп’ютері обчисли SHA-256:

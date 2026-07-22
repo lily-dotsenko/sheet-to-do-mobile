@@ -86,6 +86,11 @@ npx eas-cli@latest build --platform android --profile preview
 Get-FileHash dist\sheet-to-do-0.1.0.apk -Algorithm SHA256
 ```
 
+Перевірена preview-збірка 0.1.0 завершена в
+[EAS Build](https://expo.dev/accounts/sugar4vaders-team/projects/sheet-to-do/builds/9d506d0e-aca6-4b3b-ae56-63db8b6b628a).
+Локальний APK має розмір `107466577` байтів і SHA-256
+`F9CCE15A0448E965F9153EACB1CF90D2953AC1C9743C476A4E2E6F896CA298A8`.
+
 Профіль `production` залишено для майбутнього AAB; він не публікує застосунок у Google
 Play автоматично.
 
