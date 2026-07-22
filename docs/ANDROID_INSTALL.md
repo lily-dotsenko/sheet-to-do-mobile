@@ -10,7 +10,7 @@ EAS-профіль `preview`:
 npx eas-cli@latest build --platform android --profile preview
 ```
 
-Очікувана назва локальної копії: `dist/sheet-to-do-0.1.0.apk`.
+Очікувана назва локальної копії поточного релізу: `dist/sheet-to-do-0.2.0.apk`.
 
 ## Перевірена збірка 0.1.0
 
@@ -30,7 +30,7 @@ internal build, тому для довготривалої передачі ви
 На комп’ютері обчисли SHA-256:
 
 ```powershell
-Get-FileHash dist\sheet-to-do-0.1.0.apk -Algorithm SHA256
+Get-FileHash dist\sheet-to-do-0.2.0.apk -Algorithm SHA256
 ```
 
 Передавай checksum окремо від APK. Після копіювання можна повторно обчислити SHA-256
@@ -60,13 +60,13 @@ Get-FileHash dist\sheet-to-do-0.1.0.apk -Algorithm SHA256
 
 ```powershell
 adb devices
-adb install dist\sheet-to-do-0.1.0.apk
+adb install dist\sheet-to-do-0.2.0.apk
 ```
 
 Для оновлення поверх наявної версії:
 
 ```powershell
-adb install -r dist\sheet-to-do-0.1.0.apk
+adb install -r dist\sheet-to-do-0.2.0.apk
 ```
 
 ## Оновлення без втрати даних
@@ -80,7 +80,7 @@ adb install -r dist\sheet-to-do-0.1.0.apk
 
 Встанови його поверх старого. Не видаляй застосунок перед оновленням: uninstall видаляє
 AsyncStorage і локальні фотографії. Перед ризиковим оновленням експортуй важливі списки
-у JSON.
+у ZIP-пакет із фото або сумісний JSON без фото.
 
 ## Типові помилки
 
@@ -91,4 +91,11 @@ AsyncStorage і локальні фотографії. Перед ризиков
 - **Заблоковано Play Protect** — переконайся, що APK отримано з власної EAS-збірки та
   checksum збігається; не обходь попередження для невідомих файлів.
 - **Списки зникли після reinstall** — uninstall очищає приватні дані. Імпортуй раніше
-  експортовані JSON-файли; фотографії transfer-файл не містить.
+  експортовані `.sheet-to-do.zip` пакети або JSON-файли. Лише ZIP-пакет переносить фото.
+
+## Сумісність резервних копій 0.2.0
+
+- `.sheet-to-do.zip` відкривається застосунком 0.2.0 або новішим і переносить JPEG-фото;
+- JSON та deep links залишаються сумісними з 0.1.0, але не містять фото;
+- читабельний текст призначений лише для sharing, а не для зворотного імпорту;
+- власний фон є налаштуванням пристрою та не входить до пакета окремого списку.
