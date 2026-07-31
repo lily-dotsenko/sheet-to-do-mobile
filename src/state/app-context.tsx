@@ -34,12 +34,9 @@ import {
 } from '@/domain/models';
 import { TranslationKey, translate } from '@/i18n/translations';
 import { appStorage } from '@/services/native-storage';
-<<<<<<< HEAD
 import { backgroundFiles } from '@/services/background-files';
 import { removeLocalImage, replaceLocalImage } from '@/services/local-image-lifecycle';
-=======
 import { cancelReminder, configureNotifications, scheduleReminder } from '@/services/notifications';
->>>>>>> 7ea1644 (add new features)
 import { deletePhotoSafely } from '@/services/photo-cleanup';
 import { photoFiles } from '@/services/photo-files';
 
@@ -49,7 +46,9 @@ type Notice =
   | 'saveError'
   | 'photoError'
   | 'listLimitError'
-  | 'notificationPermissionDenied';
+  | 'notificationPermissionDenied'
+  | 'notificationPast'
+  | 'notificationError';
 
 type AppContextValue = {
   data: AppData | null;
@@ -96,7 +95,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [busyBackground, setBusyBackground] = useState(false);
 
   useEffect(() => {
-    void configureNotifications();
+    void configureNotifications().catch(() => setNotice('notificationError'));
   }, []);
 
   useEffect(() => {
@@ -372,13 +371,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await cancelReminder(list.notificationId);
       let notificationId: string | null = null;
       if (date && alarmEnabled) {
-        notificationId = await scheduleReminder(
-          `list-${listId}`,
-          list.title,
-          translate(language, 'reminderListBody'),
-          date,
-        );
-        if (!notificationId) setNotice('notificationPermissionDenied');
+        if (date.getTime() <= Date.now()) {
+          setNotice('notificationPast');
+        } else {
+          try {
+            notificationId = await scheduleReminder(
+              `list-${listId}`,
+              list.title,
+              translate(language, 'reminderListBody'),
+              date,
+            );
+            if (!notificationId) setNotice('notificationPermissionDenied');
+          } catch {
+            setNotice('notificationError');
+          }
+        }
       }
       commit((current) =>
         setListSchedule(current, listId, {
@@ -400,13 +407,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await cancelReminder(task.notificationId);
       let notificationId: string | null = null;
       if (date && alarmEnabled) {
-        notificationId = await scheduleReminder(
-          `task-${taskId}`,
-          task.text,
-          translate(language, 'reminderTaskBody'),
-          date,
-        );
-        if (!notificationId) setNotice('notificationPermissionDenied');
+        if (date.getTime() <= Date.now()) {
+          setNotice('notificationPast');
+        } else {
+          try {
+            notificationId = await scheduleReminder(
+              `task-${taskId}`,
+              task.text,
+              translate(language, 'reminderTaskBody'),
+              date,
+            );
+            if (!notificationId) setNotice('notificationPermissionDenied');
+          } catch {
+            setNotice('notificationError');
+          }
+        }
       }
       commit((current) =>
         setTaskSchedule(current, listId, taskId, {
@@ -462,15 +477,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       language,
       notice,
       removePhoto,
-<<<<<<< HEAD
       pickCustomBackground,
       removeCustomBackground,
-=======
       renameList,
       reorderLists,
       scheduleList,
       scheduleTask,
->>>>>>> 7ea1644 (add new features)
       setLanguage,
       setTheme,
       t,

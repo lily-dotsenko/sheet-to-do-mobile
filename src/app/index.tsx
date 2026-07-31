@@ -23,7 +23,6 @@ import { ShareListModal } from '@/components/share-list-modal';
 import { ThemePickerModal } from '@/components/theme-picker-modal';
 import { TaskList } from '@/domain/models';
 import { importErrorTranslationKey } from '@/i18n/translations';
-<<<<<<< HEAD
 import { ListImportError } from '@/services/list-transfer';
 import {
   listTextLabels,
@@ -36,14 +35,8 @@ import {
 import { attachPackagePhotos, deleteListPhotos } from '@/services/package-photo-import';
 import { photoFiles } from '@/services/photo-files';
 import { useApp } from '@/state/app-context';
-import { getTheme } from '@/theme/themes';
-=======
-import { useApp } from '@/state/app-context';
 import { KeyboardScrollProvider, useKeyboardScroll } from '@/state/keyboard-scroll';
-import { ListImportError } from '@/services/list-transfer';
-import { pickListJson, shareListAsDeepLink, shareListAsJson } from '@/services/native-transfer';
 import { ThemeDefinition, getTheme } from '@/theme/themes';
->>>>>>> 7ea1644 (add new features)
 
 export default function HomeScreen() {
   const { data, dismissNotice, importList, notice, reorderLists, t } = useApp();
@@ -53,11 +46,8 @@ export default function HomeScreen() {
   const [themesVisible, setThemesVisible] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [shareList, setShareList] = useState<TaskList | null>(null);
-<<<<<<< HEAD
   const [transferBusy, setTransferBusy] = useState(false);
-=======
   const flatListRef = useRef<FlatList<TaskList>>(null);
->>>>>>> 7ea1644 (add new features)
 
   useEffect(() => {
     if (!notice) return;
@@ -143,36 +133,9 @@ export default function HomeScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flex}
         >
-<<<<<<< HEAD
-          <FlatList
-            columnWrapperStyle={columns > 1 ? styles.columns : undefined}
-            contentContainerStyle={styles.content}
-            data={data.lists}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            keyboardShouldPersistTaps="handled"
-            key={`list-columns-${columns}`}
-            keyExtractor={(list) => list.id}
-            ListEmptyComponent={<EmptyState />}
-            ListHeaderComponent={
-              <HomeHeader
-                busyImport={transferBusy}
-                onCreate={() => setCreateVisible(true)}
-                onImport={() => void handleImport()}
-                onThemes={() => setThemesVisible(true)}
-                theme={theme}
-              />
-            }
-            numColumns={columns}
-            removeClippedSubviews={false}
-            renderItem={({ item }) => (
-              <View style={[styles.cardSlot, columns === 1 && styles.singleCard]}>
-                <ListCard list={item} onShare={setShareList} onViewPhoto={setPhotoUri} />
-              </View>
-            )}
-          />
-=======
           <KeyboardScrollProvider listRef={flatListRef}>
             <ListsView
+              busyImport={transferBusy}
               columns={columns}
               flatListRef={flatListRef}
               lists={data.lists}
@@ -185,7 +148,6 @@ export default function HomeScreen() {
               theme={theme}
             />
           </KeyboardScrollProvider>
->>>>>>> 7ea1644 (add new features)
         </KeyboardAvoidingView>
       </SafeAreaView>
 
@@ -224,6 +186,7 @@ export default function HomeScreen() {
 }
 
 function ListsView({
+  busyImport,
   columns,
   flatListRef,
   lists,
@@ -235,6 +198,7 @@ function ListsView({
   onViewPhoto,
   theme,
 }: {
+  busyImport: boolean;
   columns: number;
   flatListRef: RefObject<FlatList<TaskList> | null>;
   lists: TaskList[];
@@ -258,7 +222,13 @@ function ListsView({
       keyExtractor={(list) => list.id}
       ListEmptyComponent={<EmptyState />}
       ListHeaderComponent={
-        <HomeHeader onCreate={onCreate} onImport={onImport} onThemes={onThemes} theme={theme} />
+        <HomeHeader
+          busyImport={busyImport}
+          onCreate={onCreate}
+          onImport={onImport}
+          onThemes={onThemes}
+          theme={theme}
+        />
       }
       numColumns={columns}
       onDragEnd={({ data }) => onReorder(data.map((list) => list.id))}

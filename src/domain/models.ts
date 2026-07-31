@@ -198,6 +198,9 @@ export function setTaskSchedule(
 }
 
 export function reorderLists(data: AppData, orderedIds: string[]): AppData {
+  if (orderedIds.length !== data.lists.length || new Set(orderedIds).size !== orderedIds.length) {
+    return data;
+  }
   const byId = new Map(data.lists.map((list) => [list.id, list]));
   const lists = orderedIds.map((id) => byId.get(id)).filter((list): list is TaskList => !!list);
   return lists.length === data.lists.length ? touch(data, lists) : data;

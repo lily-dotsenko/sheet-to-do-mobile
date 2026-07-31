@@ -90,5 +90,6 @@ describe('Task and TaskList models', () => {
 
     const unchanged = reorderLists(data, ['list-a']);
     expect(unchanged).toBe(data);
+    expect(reorderLists(data, ['list-a', 'list-a'])).toBe(data);
   });
 });

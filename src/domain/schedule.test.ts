@@ -2,8 +2,10 @@ import { addList, createEmptyData, createTask, createTaskList, setListSchedule }
 import { dateKey, formatScheduleLabel, scheduledItemsByDate } from './schedule';
 
 describe('schedule helpers', () => {
-  test('dateKey extracts the yyyy-mm-dd portion of an ISO string', () => {
+  test('dateKey returns the local calendar day rather than the UTC day', () => {
     expect(dateKey('2030-03-05T14:30:00.000Z')).toBe('2030-03-05');
+    const localMidnight = new Date(2030, 2, 5, 0, 0, 0, 0);
+    expect(dateKey(localMidnight.toISOString())).toBe('2030-03-05');
   });
 
   test('collects scheduled lists and tasks grouped by date', () => {

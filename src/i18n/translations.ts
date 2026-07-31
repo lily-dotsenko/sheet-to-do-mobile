@@ -63,7 +63,6 @@ const uk = {
   importInvalidArchive: 'ZIP-пакет пошкоджений або має некоректний manifest.',
   importUnsafeArchive: 'ZIP-пакет містить небезпечні або неочікувані шляхи чи файли.',
   importError: 'Не вдалося імпортувати список.',
-<<<<<<< HEAD
   shareError: 'Не вдалося відкрити системне меню «Поділитися».',
   listLimitError: 'Досягнуто максимальної кількості списків або завдань.',
   customBackground: 'Власне зображення',
@@ -72,11 +71,6 @@ const uk = {
   replaceBackground: 'Замінити зображення',
   removeBackground: 'Повернути стандартний фон',
   viewBackground: 'Переглянути власний фон',
-=======
-  shareError: 'Не вдалося відкрити меню “Поділитися”.',
-  listLimitError: 'Досягнуто максимальну кількість списків або завдань.',
-  photosOmitted:
-    'Фотографії не входять до JSON або deep link; вони залишаються лише на цьому пристрої.',
   calendar: 'Календар',
   scheduleList: 'Запланувати список',
   scheduleTask: 'Запланувати завдання',
@@ -87,10 +81,11 @@ const uk = {
   scheduledFor: 'Заплановано на {date}',
   noSchedule: 'Без планування',
   notificationPermissionDenied: 'Дозвіл на сповіщення не надано, тому будильник не спрацює.',
+  notificationPast: 'Будильник можна встановити лише на майбутній час.',
+  notificationError: 'Не вдалося налаштувати локальне сповіщення.',
   reminderListBody: 'Час перевірити цей список.',
   reminderTaskBody: 'Не забудь виконати це завдання.',
   dragList: 'Перетягти',
->>>>>>> 7ea1644 (add new features)
   themeTwilight: 'Вечірня тиша',
   themeWinter: 'Зимове вікно',
   themeSpring: 'Весняне світло',
@@ -176,15 +171,12 @@ const en: Record<TranslationKey, string> = {
   importError: 'The list could not be imported.',
   shareError: 'The system share menu could not be opened.',
   listLimitError: 'The maximum number of lists or tasks has been reached.',
-<<<<<<< HEAD
   customBackground: 'Custom image',
   customBackgroundHint: 'Compressed and stored privately on this device only.',
   chooseBackground: 'Choose from gallery',
   replaceBackground: 'Replace image',
   removeBackground: 'Return to a built-in theme',
   viewBackground: 'View custom background',
-=======
-  photosOmitted: 'Photos are not included in JSON or deep links; they stay on this device.',
   calendar: 'Calendar',
   scheduleList: 'Schedule list',
   scheduleTask: 'Schedule task',
@@ -195,10 +187,11 @@ const en: Record<TranslationKey, string> = {
   scheduledFor: 'Scheduled for {date}',
   noSchedule: 'No schedule',
   notificationPermissionDenied: 'Notification permission was denied, so the alarm will not fire.',
+  notificationPast: 'An alarm can only be set for a future time.',
+  notificationError: 'The local notification could not be scheduled.',
   reminderListBody: 'Time to check this list.',
   reminderTaskBody: "Don't forget this task.",
   dragList: 'Drag to reorder',
->>>>>>> 7ea1644 (add new features)
   themeTwilight: 'Quiet twilight',
   themeWinter: 'Winter window',
   themeSpring: 'Spring light',

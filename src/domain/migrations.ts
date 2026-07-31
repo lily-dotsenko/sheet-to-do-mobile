@@ -5,11 +5,7 @@ import {
   LocalImageAttachment,
   MAX_LISTS,
   MAX_TASKS_PER_LIST,
-<<<<<<< HEAD
-=======
-  PhotoAttachment,
   Schedule,
->>>>>>> 7ea1644 (add new features)
   Task,
   TaskList,
   ThemeId,
@@ -171,12 +167,8 @@ function parseTask(value: unknown): Task {
     id: parseNonEmptyString(value.id, 100),
     text: parseNonEmptyString(value.text, 160),
     completed: value.completed,
-<<<<<<< HEAD
     photo: parseLocalImage(value.photo),
-=======
-    photo: parsePhoto(value.photo),
     ...parseSchedule(value),
->>>>>>> 7ea1644 (add new features)
     createdAt: parseDate(value.createdAt),
   };
 }
@@ -190,19 +182,12 @@ function parseLegacyTask(value: unknown, now: string): Task {
     text: parseNonEmptyString(value.text, 160),
     completed: typeof value.completed === 'boolean' ? value.completed : value.done === true,
     // Browser base64 images cannot safely become durable files during a synchronous migration.
-<<<<<<< HEAD
     photo: isRecord(value.photo) ? parseLocalImage(value.photo) : null,
-=======
-    photo: isRecord(value.photo) ? parsePhoto(value.photo) : null,
     ...parseSchedule(value),
->>>>>>> 7ea1644 (add new features)
     createdAt: typeof value.createdAt === 'string' ? parseDate(value.createdAt) : now,
   };
 }
 
-<<<<<<< HEAD
-function parseLocalImage(value: unknown): LocalImageAttachment | null {
-=======
 function parseSchedule(value: Record<string, unknown>): Schedule {
   const scheduledAt =
     typeof value.scheduledAt === 'string' && !Number.isNaN(Date.parse(value.scheduledAt))
@@ -213,8 +198,7 @@ function parseSchedule(value: Record<string, unknown>): Schedule {
   return { scheduledAt, alarmEnabled: value.alarmEnabled === true, notificationId };
 }
 
-function parsePhoto(value: unknown): PhotoAttachment | null {
->>>>>>> 7ea1644 (add new features)
+function parseLocalImage(value: unknown): LocalImageAttachment | null {
   if (value === null || value === undefined) return null;
   if (!isRecord(value)) throw new MigrationError('Invalid photo');
   const uri = parseNonEmptyString(value.uri, 1000);

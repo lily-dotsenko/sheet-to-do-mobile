@@ -34,7 +34,7 @@ export default function CalendarScreen() {
     );
   }
 
-  const theme = getTheme(data.preferences.themeId);
+  const theme = getTheme(data.preferences.themeId, data.preferences.customBackground);
 
   return (
     <ImageBackground resizeMode="cover" source={theme.image} style={styles.background}>
