@@ -1,24 +1,36 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { TaskList, completionProgress, doneCount } from '@/domain/models';
+import { formatScheduleLabel } from '@/domain/schedule';
 import { useApp } from '@/state/app-context';
+import { useKeyboardScroll } from '@/state/keyboard-scroll';
 import { iconGlyph } from '@/theme/icons';
 
+import { ScheduleModal } from './schedule-modal';
 import { TaskRow } from './task-row';
 import { IconButton } from './ui-buttons';
 
 export function ListCard({
+  dragActive = false,
   list,
+  onDragStart,
   onShare,
   onViewPhoto,
 }: {
+  dragActive?: boolean;
   list: TaskList;
+  onDragStart?: () => void;
   onShare: (list: TaskList) => void;
   onViewPhoto: (uri: string) => void;
 }) {
-  const { addTask, deleteList, t } = useApp();
+  const { addTask, deleteList, language, renameList, scheduleList, t } = useApp();
+  const { scrollIntoView } = useKeyboardScroll();
   const [text, setText] = useState('');
+  const inputRef = useRef<TextInput>(null);
+  const [isEditingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(list.title);
+  const [scheduleVisible, setScheduleVisible] = useState(false);
   const done = doneCount(list);
   const progress = completionProgress(list);
 
@@ -27,6 +39,17 @@ export function ListCard({
     if (!clean) return;
     addTask(list.id, clean);
     setText('');
+  };
+
+  const startEditingTitle = () => {
+    setTitleDraft(list.title);
+    setEditingTitle(true);
+  };
+
+  const saveTitle = () => {
+    const clean = titleDraft.trim();
+    if (clean) renameList(list.id, clean);
+    setEditingTitle(false);
   };
 
   const confirmDelete = () => {
@@ -41,17 +64,49 @@ export function ListCard({
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, dragActive && styles.cardDragging]}>
       <View style={styles.header}>
         <View style={styles.titleWrap}>
+          {onDragStart ? (
+            <IconButton icon="⠿" label={t('dragList')} onLongPress={onDragStart} />
+          ) : null}
           <Text style={styles.glyph}>{iconGlyph(list.iconId)}</Text>
-          <Text style={styles.title}>{list.title}</Text>
+          {isEditingTitle ? (
+            <TextInput
+              accessibilityLabel={t('editList')}
+              autoFocus
+              maxLength={60}
+              onChangeText={setTitleDraft}
+              onSubmitEditing={saveTitle}
+              returnKeyType="done"
+              style={styles.titleInput}
+              value={titleDraft}
+            />
+          ) : (
+            <Text style={styles.title}>{list.title}</Text>
+          )}
         </View>
         <View style={styles.actions}>
+          {isEditingTitle ? (
+            <IconButton icon="✓" label={t('save')} onPress={saveTitle} />
+          ) : (
+            <IconButton icon="✎" label={t('editList')} onPress={startEditingTitle} />
+          )}
+          <IconButton
+            icon="🔔"
+            label={t('scheduleList')}
+            onPress={() => setScheduleVisible(true)}
+          />
           <IconButton icon="↗" label={t('shareList')} onPress={() => onShare(list)} />
           <IconButton danger icon="⌫" label={t('deleteListTitle')} onPress={confirmDelete} />
         </View>
       </View>
+
+      {list.scheduledAt ? (
+        <Text style={styles.scheduleLabel}>
+          {t('scheduledFor', { date: formatScheduleLabel(list.scheduledAt, language) })}
+        </Text>
+      ) : null}
 
       <View style={styles.metaRow}>
         <Text style={styles.meta}>
@@ -83,15 +138,26 @@ export function ListCard({
           accessibilityLabel={t('newTask')}
           maxLength={160}
           onChangeText={setText}
+          onFocus={() => scrollIntoView(inputRef)}
           onSubmitEditing={submit}
           placeholder={t('newTask')}
           placeholderTextColor="#9a8e89"
+          ref={inputRef}
           returnKeyType="done"
           style={styles.input}
           value={text}
         />
         <IconButton disabled={!text.trim()} icon="＋" label={t('addTask')} onPress={submit} />
       </View>
+
+      <ScheduleModal
+        alarmEnabled={list.alarmEnabled}
+        onClose={() => setScheduleVisible(false)}
+        onSave={(date, alarmEnabled) => void scheduleList(list.id, date, alarmEnabled)}
+        scheduledAt={list.scheduledAt}
+        title={t('scheduleList')}
+        visible={scheduleVisible}
+      />
     </View>
   );
 }
@@ -108,11 +174,32 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 6,
   },
+  cardDragging: {
+    shadowOpacity: 0.32,
+    shadowRadius: 22,
+    elevation: 12,
+    opacity: 0.94,
+  },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   titleWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9 },
   glyph: { fontSize: 28 },
   title: { flex: 1, color: '#34415a', fontSize: 23, fontWeight: '800' },
+  titleInput: {
+    flex: 1,
+    color: '#34415a',
+    fontSize: 20,
+    fontWeight: '800',
+    borderBottomWidth: 2,
+    borderBottomColor: '#dd7252',
+    paddingVertical: 2,
+  },
   actions: { flexDirection: 'row', gap: 3 },
+  scheduleLabel: {
+    marginTop: 8,
+    color: '#8b5848',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

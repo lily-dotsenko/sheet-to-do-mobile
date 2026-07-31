@@ -2,6 +2,7 @@ import { Language } from '@/domain/models';
 import { ImportErrorCode } from '@/services/list-transfer';
 
 const uk = {
+  appTitle: 'Список справ',
   appSubtitle: 'Твої справи у затишних списках',
   addList: 'Новий список',
   importList: 'Імпорт',
@@ -12,6 +13,9 @@ const uk = {
   emptyTitle: 'Ще немає списків',
   emptyBody: 'Створи перший список для справ, покупок або мрій.',
   createListTitle: 'Новий список',
+  editList: 'Редагувати назву списку',
+  editTask: 'Редагувати завдання',
+  save: 'Зберегти',
   listName: 'Назва списку',
   chooseIcon: 'Обери тему',
   cancel: 'Скасувати',
@@ -59,6 +63,7 @@ const uk = {
   importInvalidArchive: 'ZIP-пакет пошкоджений або має некоректний manifest.',
   importUnsafeArchive: 'ZIP-пакет містить небезпечні або неочікувані шляхи чи файли.',
   importError: 'Не вдалося імпортувати список.',
+<<<<<<< HEAD
   shareError: 'Не вдалося відкрити системне меню «Поділитися».',
   listLimitError: 'Досягнуто максимальної кількості списків або завдань.',
   customBackground: 'Власне зображення',
@@ -67,6 +72,25 @@ const uk = {
   replaceBackground: 'Замінити зображення',
   removeBackground: 'Повернути стандартний фон',
   viewBackground: 'Переглянути власний фон',
+=======
+  shareError: 'Не вдалося відкрити меню “Поділитися”.',
+  listLimitError: 'Досягнуто максимальну кількість списків або завдань.',
+  photosOmitted:
+    'Фотографії не входять до JSON або deep link; вони залишаються лише на цьому пристрої.',
+  calendar: 'Календар',
+  scheduleList: 'Запланувати список',
+  scheduleTask: 'Запланувати завдання',
+  pickDate: 'Обери дату',
+  pickTime: 'Обери час',
+  setAlarm: 'Увімкнути будильник',
+  removeSchedule: 'Прибрати планування',
+  scheduledFor: 'Заплановано на {date}',
+  noSchedule: 'Без планування',
+  notificationPermissionDenied: 'Дозвіл на сповіщення не надано, тому будильник не спрацює.',
+  reminderListBody: 'Час перевірити цей список.',
+  reminderTaskBody: 'Не забудь виконати це завдання.',
+  dragList: 'Перетягти',
+>>>>>>> 7ea1644 (add new features)
   themeTwilight: 'Вечірня тиша',
   themeWinter: 'Зимове вікно',
   themeSpring: 'Весняне світло',
@@ -88,6 +112,7 @@ const uk = {
 export type TranslationKey = keyof typeof uk;
 
 const en: Record<TranslationKey, string> = {
+  appTitle: 'Sheet: to do',
   appSubtitle: 'Your plans in cozy little sheets',
   addList: 'New list',
   importList: 'Import',
@@ -98,6 +123,9 @@ const en: Record<TranslationKey, string> = {
   emptyTitle: 'No lists yet',
   emptyBody: 'Create your first list for errands, shopping, or dreams.',
   createListTitle: 'New list',
+  editList: 'Edit list name',
+  editTask: 'Edit task',
+  save: 'Save',
   listName: 'List name',
   chooseIcon: 'Choose a theme',
   cancel: 'Cancel',
@@ -148,12 +176,29 @@ const en: Record<TranslationKey, string> = {
   importError: 'The list could not be imported.',
   shareError: 'The system share menu could not be opened.',
   listLimitError: 'The maximum number of lists or tasks has been reached.',
+<<<<<<< HEAD
   customBackground: 'Custom image',
   customBackgroundHint: 'Compressed and stored privately on this device only.',
   chooseBackground: 'Choose from gallery',
   replaceBackground: 'Replace image',
   removeBackground: 'Return to a built-in theme',
   viewBackground: 'View custom background',
+=======
+  photosOmitted: 'Photos are not included in JSON or deep links; they stay on this device.',
+  calendar: 'Calendar',
+  scheduleList: 'Schedule list',
+  scheduleTask: 'Schedule task',
+  pickDate: 'Pick a date',
+  pickTime: 'Pick a time',
+  setAlarm: 'Enable alarm',
+  removeSchedule: 'Remove schedule',
+  scheduledFor: 'Scheduled for {date}',
+  noSchedule: 'No schedule',
+  notificationPermissionDenied: 'Notification permission was denied, so the alarm will not fire.',
+  reminderListBody: 'Time to check this list.',
+  reminderTaskBody: "Don't forget this task.",
+  dragList: 'Drag to reorder',
+>>>>>>> 7ea1644 (add new features)
   themeTwilight: 'Quiet twilight',
   themeWinter: 'Winter window',
   themeSpring: 'Spring light',

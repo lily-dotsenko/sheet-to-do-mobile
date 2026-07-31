@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Language } from '@/domain/models';
@@ -20,14 +21,20 @@ export function HomeHeader({
   busyImport?: boolean;
 }) {
   const { language, setLanguage, t } = useApp();
+  const router = useRouter();
   const nextLanguage: Language = language === 'uk' ? 'en' : 'uk';
   return (
     <View style={styles.header}>
-      <Text style={[styles.title, { color: theme.titleColor }]}>Sheet: to do</Text>
+      <Text style={[styles.title, { color: theme.titleColor }]}>{t('appTitle')}</Text>
       <Text style={[styles.subtitle, { color: theme.titleColor }]}>{t('appSubtitle')}</Text>
       <View style={styles.actions}>
         <ActionButton icon="＋" label={t('addList')} onPress={onCreate} variant="primary" />
+<<<<<<< HEAD
         <ActionButton icon="⇩" label={t('importList')} loading={busyImport} onPress={onImport} />
+=======
+        <ActionButton icon="⇩" label={t('importList')} onPress={onImport} />
+        <ActionButton icon="📅" label={t('calendar')} onPress={() => router.push('/calendar')} />
+>>>>>>> 7ea1644 (add new features)
         <ActionButton icon="🎨" label={t('themes')} onPress={onThemes} />
         <ActionButton label={t('switchLanguage')} onPress={() => setLanguage(nextLanguage)} />
       </View>

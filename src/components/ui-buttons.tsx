@@ -50,7 +50,8 @@ export function ActionButton({
 type IconButtonProps = {
   label: string;
   icon: string;
-  onPress: () => void;
+  onPress?: () => void;
+  onLongPress?: () => void;
   danger?: boolean;
   disabled?: boolean;
   loading?: boolean;
@@ -60,6 +61,7 @@ export function IconButton({
   label,
   icon,
   onPress,
+  onLongPress,
   danger = false,
   disabled = false,
   loading = false,
@@ -70,6 +72,7 @@ export function IconButton({
       accessibilityLabel={label}
       disabled={disabled || loading}
       hitSlop={4}
+      onLongPress={onLongPress}
       onPress={onPress}
       style={({ pressed }) => [
         styles.iconButton,

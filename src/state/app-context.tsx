@@ -22,19 +22,34 @@ import {
   createEmptyData,
   createTask,
   createTaskList,
+  editTaskText,
   removeList as removeListFromData,
   removeTask as removeTaskFromData,
+  renameList as renameListInData,
+  reorderLists as reorderListsInData,
+  setListSchedule,
   setTaskPhoto,
+  setTaskSchedule,
   toggleTask as toggleTaskInData,
 } from '@/domain/models';
 import { TranslationKey, translate } from '@/i18n/translations';
 import { appStorage } from '@/services/native-storage';
+<<<<<<< HEAD
 import { backgroundFiles } from '@/services/background-files';
 import { removeLocalImage, replaceLocalImage } from '@/services/local-image-lifecycle';
+=======
+import { cancelReminder, configureNotifications, scheduleReminder } from '@/services/notifications';
+>>>>>>> 7ea1644 (add new features)
 import { deletePhotoSafely } from '@/services/photo-cleanup';
 import { photoFiles } from '@/services/photo-files';
 
-type Notice = 'storageRecovered' | 'missingPhotos' | 'saveError' | 'photoError' | 'listLimitError';
+type Notice =
+  | 'storageRecovered'
+  | 'missingPhotos'
+  | 'saveError'
+  | 'photoError'
+  | 'listLimitError'
+  | 'notificationPermissionDenied';
 
 type AppContextValue = {
   data: AppData | null;
@@ -46,9 +61,19 @@ type AppContextValue = {
   dismissNotice: () => void;
   createList: (title: string, iconId: string) => void;
   deleteList: (listId: string) => Promise<void>;
+  renameList: (listId: string, title: string) => void;
+  reorderLists: (orderedIds: string[]) => void;
+  scheduleList: (listId: string, date: Date | null, alarmEnabled: boolean) => Promise<void>;
   addTask: (listId: string, text: string) => void;
   toggleTask: (listId: string, taskId: string) => void;
   deleteTask: (listId: string, taskId: string) => Promise<void>;
+  editTask: (listId: string, taskId: string, text: string) => void;
+  scheduleTask: (
+    listId: string,
+    taskId: string,
+    date: Date | null,
+    alarmEnabled: boolean,
+  ) => Promise<void>;
   attachPhoto: (listId: string, taskId: string) => Promise<void>;
   removePhoto: (listId: string, taskId: string) => Promise<void>;
   clearMissingPhoto: (listId: string, taskId: string) => void;
@@ -69,6 +94,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [busyPhotoTaskId, setBusyPhotoTaskId] = useState<string | null>(null);
   const [busyBackground, setBusyBackground] = useState(false);
+
+  useEffect(() => {
+    void configureNotifications();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -131,10 +160,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await Promise.all(
         list.tasks.map((task) => deletePhotoSafely(photoFiles, task.photo?.uri ?? null)),
       );
+      await Promise.all([
+        cancelReminder(list.notificationId),
+        ...list.tasks.map((task) => cancelReminder(task.notificationId)),
+      ]);
       commit((current) => removeListFromData(current, listId));
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
         () => undefined,
       );
+    },
+    [commit],
+  );
+
+  const renameList = useCallback(
+    (listId: string, title: string) => {
+      commit((current) => renameListInData(current, listId, title));
+    },
+    [commit],
+  );
+
+  const reorderLists = useCallback(
+    (orderedIds: string[]) => {
+      commit((current) => reorderListsInData(current, orderedIds));
+      void Haptics.selectionAsync().catch(() => undefined);
     },
     [commit],
   );
@@ -154,7 +202,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const toggleTask = useCallback(
     (listId: string, taskId: string) => {
-      commit((current) => toggleTaskInData(current, listId, taskId));
+      const task = dataRef.current?.lists
+        .find((list) => list.id === listId)
+        ?.tasks.find((item) => item.id === taskId);
+      const clearsAlarm = task ? !task.completed && task.alarmEnabled : false;
+      if (clearsAlarm) void cancelReminder(task!.notificationId);
+      commit((current) => {
+        const toggled = toggleTaskInData(current, listId, taskId);
+        return clearsAlarm
+          ? setTaskSchedule(toggled, listId, taskId, {
+              scheduledAt: null,
+              alarmEnabled: false,
+              notificationId: null,
+            })
+          : toggled;
+      });
       void Haptics.selectionAsync().catch(() => undefined);
     },
     [commit],
@@ -166,7 +228,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .find((list) => list.id === listId)
         ?.tasks.find((item) => item.id === taskId);
       await deletePhotoSafely(photoFiles, task?.photo?.uri ?? null);
+      await cancelReminder(task?.notificationId ?? null);
       commit((current) => removeTaskFromData(current, listId, taskId));
+    },
+    [commit],
+  );
+
+  const editTask = useCallback(
+    (listId: string, taskId: string, text: string) => {
+      commit((current) => editTaskText(current, listId, taskId, text));
     },
     [commit],
   );
@@ -295,6 +365,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [language],
   );
 
+  const scheduleList = useCallback(
+    async (listId: string, date: Date | null, alarmEnabled: boolean) => {
+      const list = dataRef.current?.lists.find((item) => item.id === listId);
+      if (!list) return;
+      await cancelReminder(list.notificationId);
+      let notificationId: string | null = null;
+      if (date && alarmEnabled) {
+        notificationId = await scheduleReminder(
+          `list-${listId}`,
+          list.title,
+          translate(language, 'reminderListBody'),
+          date,
+        );
+        if (!notificationId) setNotice('notificationPermissionDenied');
+      }
+      commit((current) =>
+        setListSchedule(current, listId, {
+          scheduledAt: date ? date.toISOString() : null,
+          alarmEnabled: Boolean(notificationId),
+          notificationId,
+        }),
+      );
+    },
+    [commit, language],
+  );
+
+  const scheduleTask = useCallback(
+    async (listId: string, taskId: string, date: Date | null, alarmEnabled: boolean) => {
+      const task = dataRef.current?.lists
+        .find((list) => list.id === listId)
+        ?.tasks.find((item) => item.id === taskId);
+      if (!task) return;
+      await cancelReminder(task.notificationId);
+      let notificationId: string | null = null;
+      if (date && alarmEnabled) {
+        notificationId = await scheduleReminder(
+          `task-${taskId}`,
+          task.text,
+          translate(language, 'reminderTaskBody'),
+          date,
+        );
+        if (!notificationId) setNotice('notificationPermissionDenied');
+      }
+      commit((current) =>
+        setTaskSchedule(current, listId, taskId, {
+          scheduledAt: date ? date.toISOString() : null,
+          alarmEnabled: Boolean(notificationId),
+          notificationId,
+        }),
+      );
+    },
+    [commit, language],
+  );
+
   const value = useMemo<AppContextValue>(
     () => ({
       data,
@@ -306,9 +430,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dismissNotice: () => setNotice(null),
       createList,
       deleteList,
+      renameList,
+      reorderLists,
+      scheduleList,
       addTask,
       toggleTask,
       deleteTask,
+      editTask,
+      scheduleTask,
       attachPhoto,
       removePhoto,
       clearMissingPhoto,
@@ -328,12 +457,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       data,
       deleteList,
       deleteTask,
+      editTask,
       importList,
       language,
       notice,
       removePhoto,
+<<<<<<< HEAD
       pickCustomBackground,
       removeCustomBackground,
+=======
+      renameList,
+      reorderLists,
+      scheduleList,
+      scheduleTask,
+>>>>>>> 7ea1644 (add new features)
       setLanguage,
       setTheme,
       t,

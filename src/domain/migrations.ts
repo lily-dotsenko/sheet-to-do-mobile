@@ -5,6 +5,11 @@ import {
   LocalImageAttachment,
   MAX_LISTS,
   MAX_TASKS_PER_LIST,
+<<<<<<< HEAD
+=======
+  PhotoAttachment,
+  Schedule,
+>>>>>>> 7ea1644 (add new features)
   Task,
   TaskList,
   ThemeId,
@@ -130,6 +135,7 @@ function parseList(value: unknown): TaskList {
     title: parseNonEmptyString(value.title, 60),
     iconId: parseNonEmptyString(value.iconId, 40),
     tasks: value.tasks.map(parseTask),
+    ...parseSchedule(value),
     createdAt: parseDate(value.createdAt),
   };
 }
@@ -149,6 +155,7 @@ function parseLegacyList(value: unknown, now: string): TaskList {
     iconId:
       typeof rawIcon === 'string' ? (legacyIconMap[rawIcon] ?? rawIcon.slice(0, 40)) : 'general',
     tasks: rawTasks.map((task) => parseLegacyTask(task, now)),
+    ...parseSchedule(value),
     createdAt: typeof value.createdAt === 'string' ? parseDate(value.createdAt) : now,
   };
 }
@@ -164,7 +171,12 @@ function parseTask(value: unknown): Task {
     id: parseNonEmptyString(value.id, 100),
     text: parseNonEmptyString(value.text, 160),
     completed: value.completed,
+<<<<<<< HEAD
     photo: parseLocalImage(value.photo),
+=======
+    photo: parsePhoto(value.photo),
+    ...parseSchedule(value),
+>>>>>>> 7ea1644 (add new features)
     createdAt: parseDate(value.createdAt),
   };
 }
@@ -178,12 +190,31 @@ function parseLegacyTask(value: unknown, now: string): Task {
     text: parseNonEmptyString(value.text, 160),
     completed: typeof value.completed === 'boolean' ? value.completed : value.done === true,
     // Browser base64 images cannot safely become durable files during a synchronous migration.
+<<<<<<< HEAD
     photo: isRecord(value.photo) ? parseLocalImage(value.photo) : null,
+=======
+    photo: isRecord(value.photo) ? parsePhoto(value.photo) : null,
+    ...parseSchedule(value),
+>>>>>>> 7ea1644 (add new features)
     createdAt: typeof value.createdAt === 'string' ? parseDate(value.createdAt) : now,
   };
 }
 
+<<<<<<< HEAD
 function parseLocalImage(value: unknown): LocalImageAttachment | null {
+=======
+function parseSchedule(value: Record<string, unknown>): Schedule {
+  const scheduledAt =
+    typeof value.scheduledAt === 'string' && !Number.isNaN(Date.parse(value.scheduledAt))
+      ? value.scheduledAt
+      : null;
+  const notificationId =
+    typeof value.notificationId === 'string' && value.notificationId ? value.notificationId : null;
+  return { scheduledAt, alarmEnabled: value.alarmEnabled === true, notificationId };
+}
+
+function parsePhoto(value: unknown): PhotoAttachment | null {
+>>>>>>> 7ea1644 (add new features)
   if (value === null || value === undefined) return null;
   if (!isRecord(value)) throw new MigrationError('Invalid photo');
   const uri = parseNonEmptyString(value.uri, 1000);

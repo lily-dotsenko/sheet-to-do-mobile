@@ -10,6 +10,8 @@ import {
   View,
 } from 'react-native';
 
+import { useApp } from '@/state/app-context';
+
 export function ModalFrame({
   visible,
   title,
@@ -21,6 +23,7 @@ export function ModalFrame({
   onClose: () => void;
   children: ReactNode;
 }) {
+  const { t } = useApp();
   return (
     <Modal
       animationType="fade"
@@ -35,7 +38,7 @@ export function ModalFrame({
       >
         <View style={styles.overlay}>
           <Pressable
-            accessibilityLabel="Закрити / Close"
+            accessibilityLabel={t('close')}
             accessibilityRole="button"
             onPress={onClose}
             style={styles.backdrop}
@@ -45,7 +48,7 @@ export function ModalFrame({
             <View style={styles.header}>
               <Text style={styles.title}>{title}</Text>
               <Pressable
-                accessibilityLabel="Закрити / Close"
+                accessibilityLabel={t('close')}
                 accessibilityRole="button"
                 hitSlop={8}
                 onPress={onClose}

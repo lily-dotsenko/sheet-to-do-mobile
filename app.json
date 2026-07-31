@@ -15,6 +15,7 @@
         "foregroundImage": "./assets/branding/app-icon.png"
       },
       "predictiveBackGestureEnabled": true,
+      "softwareKeyboardLayoutMode": "resize",
       "permissions": [],
       "blockedPermissions": [
         "android.permission.CAMERA",
@@ -33,6 +34,7 @@
       ],
       "expo-localization",
       "expo-sharing",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {

@@ -21,6 +21,9 @@ export type Task = {
   text: string;
   completed: boolean;
   photo: PhotoAttachment | null;
+  scheduledAt: string | null;
+  alarmEnabled: boolean;
+  notificationId: string | null;
   createdAt: string;
 };
 
@@ -29,7 +32,16 @@ export type TaskList = {
   title: string;
   iconId: string;
   tasks: Task[];
+  scheduledAt: string | null;
+  alarmEnabled: boolean;
+  notificationId: string | null;
   createdAt: string;
+};
+
+export type Schedule = {
+  scheduledAt: string | null;
+  alarmEnabled: boolean;
+  notificationId: string | null;
 };
 
 export type AppPreferences = {
@@ -65,13 +77,21 @@ function cleanText(value: string, maxLength: number, label: string): string {
 
 export function createTask(
   text: string,
-  overrides: Partial<Pick<Task, 'id' | 'completed' | 'photo' | 'createdAt'>> = {},
+  overrides: Partial<
+    Pick<
+      Task,
+      'id' | 'completed' | 'photo' | 'createdAt' | 'scheduledAt' | 'alarmEnabled' | 'notificationId'
+    >
+  > = {},
 ): Task {
   return {
     id: overrides.id ?? createId(),
     text: cleanText(text, MAX_TASK_TEXT_LENGTH, 'Task text'),
     completed: overrides.completed ?? false,
     photo: overrides.photo ?? null,
+    scheduledAt: overrides.scheduledAt ?? null,
+    alarmEnabled: overrides.alarmEnabled ?? false,
+    notificationId: overrides.notificationId ?? null,
     createdAt: overrides.createdAt ?? new Date().toISOString(),
   };
 }
@@ -79,7 +99,9 @@ export function createTask(
 export function createTaskList(
   title: string,
   iconId = 'general',
-  overrides: Partial<Pick<TaskList, 'id' | 'tasks' | 'createdAt'>> = {},
+  overrides: Partial<
+    Pick<TaskList, 'id' | 'tasks' | 'createdAt' | 'scheduledAt' | 'alarmEnabled' | 'notificationId'>
+  > = {},
 ): TaskList {
   const tasks = overrides.tasks ?? [];
   if (tasks.length > MAX_TASKS_PER_LIST) {
@@ -90,6 +112,9 @@ export function createTaskList(
     title: cleanText(title, MAX_LIST_TITLE_LENGTH, 'List title'),
     iconId,
     tasks,
+    scheduledAt: overrides.scheduledAt ?? null,
+    alarmEnabled: overrides.alarmEnabled ?? false,
+    notificationId: overrides.notificationId ?? null,
     createdAt: overrides.createdAt ?? new Date().toISOString(),
   };
 }
@@ -147,6 +172,35 @@ export function removeTask(data: AppData, listId: string, taskId: string): AppDa
     ...list,
     tasks: list.tasks.filter((task) => task.id !== taskId),
   }));
+}
+
+export function renameList(data: AppData, listId: string, title: string): AppData {
+  const clean = cleanText(title, MAX_LIST_TITLE_LENGTH, 'List title');
+  return updateList(data, listId, (list) => ({ ...list, title: clean }));
+}
+
+export function editTaskText(data: AppData, listId: string, taskId: string, text: string): AppData {
+  const clean = cleanText(text, MAX_TASK_TEXT_LENGTH, 'Task text');
+  return updateTask(data, listId, taskId, (task) => ({ ...task, text: clean }));
+}
+
+export function setListSchedule(data: AppData, listId: string, schedule: Schedule): AppData {
+  return updateList(data, listId, (list) => ({ ...list, ...schedule }));
+}
+
+export function setTaskSchedule(
+  data: AppData,
+  listId: string,
+  taskId: string,
+  schedule: Schedule,
+): AppData {
+  return updateTask(data, listId, taskId, (task) => ({ ...task, ...schedule }));
+}
+
+export function reorderLists(data: AppData, orderedIds: string[]): AppData {
+  const byId = new Map(data.lists.map((list) => [list.id, list]));
+  const lists = orderedIds.map((id) => byId.get(id)).filter((list): list is TaskList => !!list);
+  return lists.length === data.lists.length ? touch(data, lists) : data;
 }
 
 export function doneCount(list: TaskList): number {

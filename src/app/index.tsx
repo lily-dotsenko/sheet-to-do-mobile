@@ -1,9 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +11,8 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CreateListModal } from '@/components/create-list-modal';
@@ -22,6 +23,7 @@ import { ShareListModal } from '@/components/share-list-modal';
 import { ThemePickerModal } from '@/components/theme-picker-modal';
 import { TaskList } from '@/domain/models';
 import { importErrorTranslationKey } from '@/i18n/translations';
+<<<<<<< HEAD
 import { ListImportError } from '@/services/list-transfer';
 import {
   listTextLabels,
@@ -35,16 +37,27 @@ import { attachPackagePhotos, deleteListPhotos } from '@/services/package-photo-
 import { photoFiles } from '@/services/photo-files';
 import { useApp } from '@/state/app-context';
 import { getTheme } from '@/theme/themes';
+=======
+import { useApp } from '@/state/app-context';
+import { KeyboardScrollProvider, useKeyboardScroll } from '@/state/keyboard-scroll';
+import { ListImportError } from '@/services/list-transfer';
+import { pickListJson, shareListAsDeepLink, shareListAsJson } from '@/services/native-transfer';
+import { ThemeDefinition, getTheme } from '@/theme/themes';
+>>>>>>> 7ea1644 (add new features)
 
 export default function HomeScreen() {
-  const { data, dismissNotice, importList, notice, t } = useApp();
+  const { data, dismissNotice, importList, notice, reorderLists, t } = useApp();
   const { width } = useWindowDimensions();
   const columns = width >= 760 ? 2 : 1;
   const [createVisible, setCreateVisible] = useState(false);
   const [themesVisible, setThemesVisible] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [shareList, setShareList] = useState<TaskList | null>(null);
+<<<<<<< HEAD
   const [transferBusy, setTransferBusy] = useState(false);
+=======
+  const flatListRef = useRef<FlatList<TaskList>>(null);
+>>>>>>> 7ea1644 (add new features)
 
   useEffect(() => {
     if (!notice) return;
@@ -130,6 +143,7 @@ export default function HomeScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flex}
         >
+<<<<<<< HEAD
           <FlatList
             columnWrapperStyle={columns > 1 ? styles.columns : undefined}
             contentContainerStyle={styles.content}
@@ -156,6 +170,22 @@ export default function HomeScreen() {
               </View>
             )}
           />
+=======
+          <KeyboardScrollProvider listRef={flatListRef}>
+            <ListsView
+              columns={columns}
+              flatListRef={flatListRef}
+              lists={data.lists}
+              onCreate={() => setCreateVisible(true)}
+              onImport={() => void handleImport()}
+              onReorder={reorderLists}
+              onShare={setShareList}
+              onThemes={() => setThemesVisible(true)}
+              onViewPhoto={setPhotoUri}
+              theme={theme}
+            />
+          </KeyboardScrollProvider>
+>>>>>>> 7ea1644 (add new features)
         </KeyboardAvoidingView>
       </SafeAreaView>
 
@@ -190,6 +220,64 @@ export default function HomeScreen() {
       />
       <PhotoViewerModal onClose={() => setPhotoUri(null)} uri={photoUri} />
     </ImageBackground>
+  );
+}
+
+function ListsView({
+  columns,
+  flatListRef,
+  lists,
+  onCreate,
+  onImport,
+  onReorder,
+  onShare,
+  onThemes,
+  onViewPhoto,
+  theme,
+}: {
+  columns: number;
+  flatListRef: RefObject<FlatList<TaskList> | null>;
+  lists: TaskList[];
+  onCreate: () => void;
+  onImport: () => void;
+  onReorder: (orderedIds: string[]) => void;
+  onShare: (list: TaskList) => void;
+  onThemes: () => void;
+  onViewPhoto: (uri: string) => void;
+  theme: ThemeDefinition;
+}) {
+  const { handleScroll } = useKeyboardScroll();
+  return (
+    <DraggableFlatList
+      columnWrapperStyle={columns > 1 ? styles.columns : undefined}
+      contentContainerStyle={styles.content}
+      data={lists}
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
+      keyboardShouldPersistTaps="handled"
+      key={`list-columns-${columns}`}
+      keyExtractor={(list) => list.id}
+      ListEmptyComponent={<EmptyState />}
+      ListHeaderComponent={
+        <HomeHeader onCreate={onCreate} onImport={onImport} onThemes={onThemes} theme={theme} />
+      }
+      numColumns={columns}
+      onDragEnd={({ data }) => onReorder(data.map((list) => list.id))}
+      onScroll={handleScroll}
+      ref={flatListRef}
+      removeClippedSubviews={false}
+      renderItem={({ item, drag, isActive }: RenderItemParams<TaskList>) => (
+        <View style={[styles.cardSlot, columns === 1 && styles.singleCard]}>
+          <ListCard
+            dragActive={isActive}
+            list={item}
+            onDragStart={drag}
+            onShare={onShare}
+            onViewPhoto={onViewPhoto}
+          />
+        </View>
+      )}
+      scrollEventThrottle={16}
+    />
   );
 }
 
