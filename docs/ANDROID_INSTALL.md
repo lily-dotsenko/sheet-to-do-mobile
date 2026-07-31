@@ -10,7 +10,7 @@ EAS-профіль `preview`:
 npx eas-cli@latest build --platform android --profile preview
 ```
 
-Очікувана назва локальної копії поточного релізу: `dist/sheet-to-do-0.2.0.apk`.
+Очікувана назва локальної копії поточного релізу: `dist/sheet-to-do-0.3.0.apk`.
 
 ## Перевірена збірка 0.2.0
 
@@ -31,7 +31,7 @@ internal build, тому для довготривалої передачі ви
 На комп’ютері обчисли SHA-256:
 
 ```powershell
-Get-FileHash dist\sheet-to-do-0.2.0.apk -Algorithm SHA256
+Get-FileHash dist\sheet-to-do-0.3.0.apk -Algorithm SHA256
 ```
 
 Передавай checksum окремо від APK. Після копіювання можна повторно обчислити SHA-256
@@ -61,13 +61,13 @@ Get-FileHash dist\sheet-to-do-0.2.0.apk -Algorithm SHA256
 
 ```powershell
 adb devices
-adb install dist\sheet-to-do-0.2.0.apk
+adb install dist\sheet-to-do-0.3.0.apk
 ```
 
 Для оновлення поверх наявної версії:
 
 ```powershell
-adb install -r dist\sheet-to-do-0.2.0.apk
+adb install -r dist\sheet-to-do-0.3.0.apk
 ```
 
 ## Оновлення без втрати даних
@@ -82,6 +82,10 @@ adb install -r dist\sheet-to-do-0.2.0.apk
 Встанови його поверх старого. Не видаляй застосунок перед оновленням: uninstall видаляє
 AsyncStorage і локальні фотографії. Перед ризиковим оновленням експортуй важливі списки
 у ZIP-пакет із фото або сумісний JSON без фото.
+
+Після першого ввімкнення будильника Android попросить дозвіл на сповіщення. На деяких
+версіях Android 12+ додатково відкрий системний доступ **Будильники й нагадування** для
+Sheet: to do, інакше точне локальне нагадування може не спрацювати.
 
 ## Типові помилки
 
