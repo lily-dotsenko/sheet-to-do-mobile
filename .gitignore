@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# User-owned generated material is not part of the application source.
+/output/
