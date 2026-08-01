@@ -120,10 +120,15 @@ const styles = StyleSheet.create({
   agendaTitle: { color: '#34415a', fontSize: 16, fontWeight: '800' },
   agendaTime: { color: '#8b5848', fontSize: 13, fontWeight: '700', marginTop: 2 },
   emptyAgenda: {
-    color: '#8b5848',
+    alignSelf: 'center',
+    color: '#68483e',
     fontSize: 14,
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 250, 244, 0.9)',
   },
 });

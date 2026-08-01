@@ -128,7 +128,7 @@ export default function HomeScreen() {
       <StatusBar style={theme.statusBar} />
       <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.flex}
         >
           <KeyboardScrollProvider listRef={flatListRef}>

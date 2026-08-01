@@ -20,6 +20,7 @@ import { TaskList } from '@/domain/models';
 
 const SCROLL_MARGIN = 16;
 const MEASURE_DELAY = 60;
+const SETTLED_MEASURE_DELAY = 240;
 
 type KeyboardScrollContextValue = {
   handleScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -58,8 +59,11 @@ export function KeyboardScrollProvider({
     const didShow = Keyboard.addListener('keyboardDidShow', (event: KeyboardEvent) => {
       keyboardTopRef.current = event.endCoordinates.screenY;
       const pending = pendingInputRef.current;
-      if (pending)
+      if (pending) {
         setTimeout(() => revealInput(pending, event.endCoordinates.screenY), MEASURE_DELAY);
+        // Some Android keyboards report before the resized window finishes laying out.
+        setTimeout(() => revealInput(pending, event.endCoordinates.screenY), SETTLED_MEASURE_DELAY);
+      }
     });
     const didHide = Keyboard.addListener('keyboardDidHide', () => {
       keyboardTopRef.current = null;
@@ -81,6 +85,7 @@ export function KeyboardScrollProvider({
       const keyboardTop = keyboardTopRef.current;
       if (keyboardTop !== null) {
         setTimeout(() => revealInput(inputRef, keyboardTop), MEASURE_DELAY);
+        setTimeout(() => revealInput(inputRef, keyboardTop), SETTLED_MEASURE_DELAY);
       }
     },
     [revealInput],

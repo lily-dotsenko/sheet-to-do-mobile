@@ -29,11 +29,12 @@ export function ModalFrame({
       animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent
+      navigationBarTranslucent
       transparent
       visible={visible}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboard}
       >
         <View style={styles.overlay}>
