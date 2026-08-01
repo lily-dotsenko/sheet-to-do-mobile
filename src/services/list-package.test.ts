@@ -3,11 +3,23 @@ import { strToU8, unzipSync, zipSync } from 'fflate';
 import { createTask, createTaskList } from '@/domain/models';
 
 import { ListImportError } from './list-transfer';
-import { createListPackage, parseListPackage } from './list-package';
+import {
+  PACKAGE_EXTENSION,
+  PACKAGE_MIME_TYPE,
+  PACKAGE_SHARE_MIME_TYPE,
+  createListPackage,
+  parseListPackage,
+} from './list-package';
 
 const jpeg = new Uint8Array([0xff, 0xd8, 1, 2, 3, 0xff, 0xd9]);
 
 describe('versioned list packages', () => {
+  test('uses a messenger-friendly Sheet file identity', () => {
+    expect(PACKAGE_EXTENSION).toBe('.sheettodo');
+    expect(PACKAGE_MIME_TYPE).toBe('application/vnd.sheet-to-do.list');
+    expect(PACKAGE_SHARE_MIME_TYPE).toBe('application/octet-stream');
+  });
+
   test('round-trips tasks and JPEG photos with new IDs', () => {
     const task = createTask('Receipt', { completed: true });
     const list = createTaskList('Shopping', 'shopping', { tasks: [task] });

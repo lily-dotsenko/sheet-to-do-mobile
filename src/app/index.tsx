@@ -27,9 +27,7 @@ import { ListImportError } from '@/services/list-transfer';
 import {
   listTextLabels,
   pickListImport,
-  shareListAsDeepLink,
-  shareListAsJson,
-  shareListAsPackage,
+  shareListAsSheetFile,
   shareListAsText,
 } from '@/services/native-transfer';
 import { attachPackagePhotos, deleteListPhotos } from '@/services/package-photo-import';
@@ -164,11 +162,9 @@ export default function HomeScreen() {
         busy={transferBusy}
         list={shareList}
         onClose={() => setShareList(null)}
-        onShareFile={(list) => void runShare(() => shareListAsJson(list, t('shareList')))}
-        onShareLink={(list) => void runShare(() => shareListAsDeepLink(list, t('shareList')))}
-        onSharePackage={(list) =>
+        onShareSheetFile={(list) =>
           void runShare(async () => {
-            const result = await shareListAsPackage(list, t('shareList'));
+            const result = await shareListAsSheetFile(list, t('shareList'));
             if (result.omittedPhotos > 0)
               Alert.alert(
                 t('attention'),
@@ -218,6 +214,7 @@ function ListsView({
       data={lists}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
       key={`list-columns-${columns}`}
       keyExtractor={(list) => list.id}
       ListEmptyComponent={<EmptyState />}

@@ -12,17 +12,13 @@ export function ShareListModal({
   busy,
   onClose,
   onShareText,
-  onSharePackage,
-  onShareFile,
-  onShareLink,
+  onShareSheetFile,
 }: {
   list: TaskList | null;
   busy: boolean;
   onClose: () => void;
   onShareText: (list: TaskList) => void;
-  onSharePackage: (list: TaskList) => void;
-  onShareFile: (list: TaskList) => void;
-  onShareLink: (list: TaskList) => void;
+  onShareSheetFile: (list: TaskList) => void;
 }) {
   const { t } = useApp();
   const option = (
@@ -52,12 +48,7 @@ export function ShareListModal({
       {list ? (
         <View style={styles.options}>
           {option('shareText', 'shareTextHint', () => onShareText(list))}
-          {option('sharePackage', 'sharePackageHint', () => onSharePackage(list), true)}
-          {option('shareJson', 'shareJsonHint', () => onShareFile(list))}
-          {option('shareLink', 'shareLinkHint', () => onShareLink(list))}
-          {list.tasks.some((task) => task.photo) ? (
-            <Text style={styles.warning}>{t('photosOmitted')}</Text>
-          ) : null}
+          {option('sharePackage', 'sharePackageHint', () => onShareSheetFile(list), true)}
         </View>
       ) : null}
     </ModalFrame>
@@ -69,12 +60,4 @@ const styles = StyleSheet.create({
   option: { gap: 6, marginBottom: 8 },
   button: { alignSelf: 'stretch' },
   hint: { color: '#756b69', fontSize: 13, lineHeight: 18, paddingHorizontal: 4 },
-  warning: {
-    color: '#8b553f',
-    backgroundColor: '#fff0e6',
-    borderRadius: 14,
-    padding: 12,
-    fontSize: 13,
-    lineHeight: 18,
-  },
 });

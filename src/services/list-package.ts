@@ -6,7 +6,9 @@ import { ListImportError } from './list-transfer';
 
 export const PACKAGE_FORMAT = 'sheet-to-do-package' as const;
 export const PACKAGE_VERSION = 1 as const;
-export const PACKAGE_EXTENSION = '.sheet-to-do.zip';
+export const PACKAGE_EXTENSION = '.sheettodo';
+export const PACKAGE_MIME_TYPE = 'application/vnd.sheet-to-do.list';
+export const PACKAGE_SHARE_MIME_TYPE = 'application/octet-stream';
 export const MAX_PACKAGE_BYTES = 64 * 1024 * 1024;
 export const MAX_PACKAGE_UNCOMPRESSED_BYTES = 80 * 1024 * 1024;
 export const MAX_PACKAGE_PHOTO_BYTES = 8 * 1024 * 1024;

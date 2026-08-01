@@ -36,7 +36,12 @@ import { TranslationKey, translate } from '@/i18n/translations';
 import { appStorage } from '@/services/native-storage';
 import { backgroundFiles } from '@/services/background-files';
 import { removeLocalImage, replaceLocalImage } from '@/services/local-image-lifecycle';
-import { cancelReminder, configureNotifications, scheduleReminder } from '@/services/notifications';
+import {
+  ExactAlarmPermissionError,
+  cancelReminder,
+  configureNotifications,
+  scheduleReminder,
+} from '@/services/notifications';
 import { deletePhotoSafely } from '@/services/photo-cleanup';
 import { photoFiles } from '@/services/photo-files';
 
@@ -47,6 +52,7 @@ type Notice =
   | 'photoError'
   | 'listLimitError'
   | 'notificationPermissionDenied'
+  | 'exactAlarmPermissionRequired'
   | 'notificationPast'
   | 'notificationError';
 
@@ -380,10 +386,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
               list.title,
               translate(language, 'reminderListBody'),
               date,
+              translate(language, 'stopAlarm'),
             );
             if (!notificationId) setNotice('notificationPermissionDenied');
-          } catch {
-            setNotice('notificationError');
+          } catch (error) {
+            setNotice(
+              error instanceof ExactAlarmPermissionError
+                ? 'exactAlarmPermissionRequired'
+                : 'notificationError',
+            );
           }
         }
       }
@@ -416,10 +427,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
               task.text,
               translate(language, 'reminderTaskBody'),
               date,
+              translate(language, 'stopAlarm'),
             );
             if (!notificationId) setNotice('notificationPermissionDenied');
-          } catch {
-            setNotice('notificationError');
+          } catch (error) {
+            setNotice(
+              error instanceof ExactAlarmPermissionError
+                ? 'exactAlarmPermissionRequired'
+                : 'notificationError',
+            );
           }
         }
       }

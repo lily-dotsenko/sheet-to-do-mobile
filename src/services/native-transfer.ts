@@ -8,6 +8,8 @@ import { TaskList, doneCount } from '@/domain/models';
 import {
   MAX_PACKAGE_BYTES,
   PACKAGE_EXTENSION,
+  PACKAGE_MIME_TYPE,
+  PACKAGE_SHARE_MIME_TYPE,
   PackagePhotoInput,
   ParsedListPackage,
   createListPackage,
@@ -52,7 +54,7 @@ export async function shareListAsJson(list: TaskList, dialogTitle: string): Prom
   }
 }
 
-export async function shareListAsPackage(
+export async function shareListAsSheetFile(
   list: TaskList,
   dialogTitle: string,
 ): Promise<{ includedPhotos: number; omittedPhotos: number }> {
@@ -79,8 +81,12 @@ export async function shareListAsPackage(
     file.write(createListPackage(list, photoInputs));
     await Sharing.shareAsync(file.uri, {
       dialogTitle,
-      mimeType: 'application/zip',
-      UTI: 'public.zip-archive',
+      // A dedicated type lets Android route downloaded files back to this app.
+      // The custom extension stays intact in document-capable messengers.
+      // Generic binary documents are accepted by Telegram, WhatsApp, Viber,
+      // Signal, email, and file managers. The .sheettodo name identifies it.
+      mimeType: PACKAGE_SHARE_MIME_TYPE,
+      UTI: 'public.data',
     });
   } finally {
     if (file.exists) file.delete();
@@ -97,6 +103,7 @@ export async function pickListImport(): Promise<PickedListImport | null> {
     type: [
       'application/zip',
       'application/x-zip-compressed',
+      PACKAGE_MIME_TYPE,
       'application/octet-stream',
       'application/json',
       'text/json',
@@ -119,6 +126,20 @@ export async function pickListImport(): Promise<PickedListImport | null> {
   } finally {
     if (file.exists && file.uri.includes('/cache/')) file.delete();
   }
+}
+
+export async function readIncomingSheetFile(uri: string): Promise<PickedListImport> {
+  const file = new File(uri);
+  let bytes: Uint8Array;
+  try {
+    if ((file.size ?? 0) > MAX_PACKAGE_BYTES) throw new ListImportError('tooLarge');
+    bytes = await file.bytes();
+  } catch (error) {
+    if (error instanceof ListImportError) throw error;
+    throw new ListImportError('invalidFormat');
+  }
+  if (!isZip(bytes)) throw new ListImportError('invalidArchive');
+  return { kind: 'package', ...parseListPackage(bytes) };
 }
 
 export function listTextLabels(
