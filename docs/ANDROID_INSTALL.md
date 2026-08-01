@@ -10,12 +10,18 @@ npx eas-cli@latest build --platform android --profile preview
 
 Локальна назва поточного релізу: `dist/sheet-to-do-0.4.0.apk`. APK не додається в Git.
 
-Попередня перевірена збірка 0.3.0 має EAS build ID
-`9921006f-49ad-40a4-9de3-52b70a04173f`, versionCode `3` і
-[сторінку EAS](https://expo.dev/accounts/sugar4vaders-team/projects/sheet-to-do/builds/9921006f-49ad-40a4-9de3-52b70a04173f).
-Її SHA-256: `A618038DA38C5D8946A38263D8B1115EE7B0C892280DB503BD53B9E0D8FDBB8B`.
+## Перевірена збірка 0.4.0
 
-Після збірки 0.4.0 перевір локальний файл:
+- EAS build ID: `cb8f5d66-126b-41c2-872e-90c94aa72199`;
+- профіль: `preview`, Android internal distribution APK;
+- версія: `0.4.0`, Android versionCode `4`;
+- Git commit збірки: `66e1b871faea3d90a3db4c504f95785db2d3d232`;
+- [сторінка завершеної EAS-збірки](https://expo.dev/accounts/sugar4vaders-team/projects/sheet-to-do/builds/cb8f5d66-126b-41c2-872e-90c94aa72199);
+- локальний файл: `dist/sheet-to-do-0.4.0.apk`;
+- розмір: `111088536` байт (приблизно 105,94 MiB);
+- SHA-256: `B8EF04BC75FD4739B1518E37DB431760621217B3BF07C6EB0B64DB6C92BAA421`.
+
+Перевір локальний файл:
 
 ```powershell
 Get-FileHash dist\sheet-to-do-0.4.0.apk -Algorithm SHA256
