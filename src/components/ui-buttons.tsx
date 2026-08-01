@@ -25,6 +25,7 @@ export function ActionButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled: disabled || loading }}
       disabled={disabled || loading}
       onPress={onPress}
       style={({ pressed }) => [
@@ -55,6 +56,7 @@ type IconButtonProps = {
   danger?: boolean;
   disabled?: boolean;
   loading?: boolean;
+  active?: boolean;
 };
 
 export function IconButton({
@@ -65,17 +67,20 @@ export function IconButton({
   danger = false,
   disabled = false,
   loading = false,
+  active = false,
 }: IconButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled: disabled || loading, selected: active }}
       disabled={disabled || loading}
       hitSlop={4}
       onLongPress={onLongPress}
       onPress={onPress}
       style={({ pressed }) => [
         styles.iconButton,
+        active && styles.iconActive,
         danger && styles.iconDanger,
         pressed && styles.pressed,
         (disabled || loading) && styles.disabled,
@@ -109,7 +114,7 @@ const styles = StyleSheet.create({
   danger: { backgroundColor: '#fff1ed', borderColor: '#f2c1b4' },
   label: { color: '#3f4553', fontSize: 15, fontWeight: '700' },
   primaryLabel: { color: '#ffffff' },
-  icon: { fontSize: 18 },
+  icon: { fontSize: 20, lineHeight: 22, fontWeight: '800', textAlign: 'center' },
   pressed: { opacity: 0.72, transform: [{ scale: 0.98 }] },
   disabled: { opacity: 0.45 },
   iconButton: {
@@ -121,6 +126,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff7f1',
   },
   iconDanger: { backgroundColor: '#fff0ed' },
+  iconActive: {
+    backgroundColor: '#ffe6a6',
+    borderWidth: 1,
+    borderColor: '#e6ad35',
+  },
   iconButtonText: { fontSize: 20, color: '#475166' },
   dangerText: { color: '#b94f3d' },
 });

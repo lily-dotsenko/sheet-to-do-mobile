@@ -8,8 +8,8 @@ import {
   useRef,
 } from 'react';
 import {
-  Dimensions,
   Keyboard,
+  KeyboardEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   TextInput,
@@ -19,7 +19,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import { TaskList } from '@/domain/models';
 
 const SCROLL_MARGIN = 16;
-const MEASURE_DELAY = 80;
+const MEASURE_DELAY = 60;
 
 type KeyboardScrollContextValue = {
   handleScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -36,20 +36,40 @@ export function KeyboardScrollProvider({
   children: ReactNode;
 }) {
   const offsetRef = useRef(0);
-  const keyboardHeightRef = useRef(0);
+  const keyboardTopRef = useRef<number | null>(null);
+  const pendingInputRef = useRef<RefObject<TextInput | null> | null>(null);
+
+  const revealInput = useCallback(
+    (inputRef: RefObject<TextInput | null>, keyboardTop: number) => {
+      const input = inputRef.current;
+      const list = listRef.current;
+      if (!input || !list) return;
+      input.measureInWindow((_x, y, _width, height) => {
+        const overflow = y + height - keyboardTop + SCROLL_MARGIN;
+        if (overflow > 0) {
+          list.scrollToOffset({ offset: offsetRef.current + overflow, animated: true });
+        }
+      });
+    },
+    [listRef],
+  );
 
   useEffect(() => {
-    const didShow = Keyboard.addListener('keyboardDidShow', (event) => {
-      keyboardHeightRef.current = event.endCoordinates?.height ?? 0;
+    const didShow = Keyboard.addListener('keyboardDidShow', (event: KeyboardEvent) => {
+      keyboardTopRef.current = event.endCoordinates.screenY;
+      const pending = pendingInputRef.current;
+      if (pending)
+        setTimeout(() => revealInput(pending, event.endCoordinates.screenY), MEASURE_DELAY);
     });
     const didHide = Keyboard.addListener('keyboardDidHide', () => {
-      keyboardHeightRef.current = 0;
+      keyboardTopRef.current = null;
+      pendingInputRef.current = null;
     });
     return () => {
       didShow.remove();
       didHide.remove();
     };
-  }, []);
+  }, [revealInput]);
 
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     offsetRef.current = event.nativeEvent.contentOffset.y;
@@ -57,22 +77,13 @@ export function KeyboardScrollProvider({
 
   const scrollIntoView = useCallback(
     (inputRef: RefObject<TextInput | null>) => {
-      // Keyboard height is only known once the show animation reports it, so measure after a delay.
-      setTimeout(() => {
-        const input = inputRef.current;
-        const list = listRef.current;
-        const keyboardHeight = keyboardHeightRef.current;
-        if (!input || !list || keyboardHeight <= 0) return;
-        input.measureInWindow((_x, y, _width, height) => {
-          const visibleBottom = Dimensions.get('window').height - keyboardHeight;
-          const overflow = y + height - visibleBottom + SCROLL_MARGIN;
-          if (overflow > 0) {
-            list.scrollToOffset({ offset: offsetRef.current + overflow, animated: true });
-          }
-        });
-      }, MEASURE_DELAY);
+      pendingInputRef.current = inputRef;
+      const keyboardTop = keyboardTopRef.current;
+      if (keyboardTop !== null) {
+        setTimeout(() => revealInput(inputRef, keyboardTop), MEASURE_DELAY);
+      }
     },
-    [listRef],
+    [revealInput],
   );
 
   return (

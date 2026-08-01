@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { dateKey } from '@/domain/schedule';
 import { Language } from '@/domain/models';
-import { MONTHS, WEEKDAYS } from '@/i18n/calendar-locale';
+import { MONTH_TITLES, WEEKDAYS } from '@/i18n/calendar-locale';
 
 type CalendarGridProps = {
   month: Date;
@@ -52,7 +52,7 @@ export function CalendarGrid({
           <Text style={styles.monthNavText}>‹</Text>
         </Pressable>
         <Text style={styles.monthTitle}>
-          {MONTHS[language][monthIndex]} {year}
+          {MONTH_TITLES[language][monthIndex]} {year}
         </Text>
         <Pressable
           accessibilityLabel="›"

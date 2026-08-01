@@ -28,7 +28,7 @@ export function HomeHeader({
       <Text style={[styles.title, { color: theme.titleColor }]}>{t('appTitle')}</Text>
       <Text style={[styles.subtitle, { color: theme.titleColor }]}>{t('appSubtitle')}</Text>
       <View style={styles.actions}>
-        <ActionButton icon="＋" label={t('addList')} onPress={onCreate} variant="primary" />
+        <ActionButton icon="+" label={t('addList')} onPress={onCreate} variant="primary" />
         <ActionButton icon="⇩" label={t('importList')} loading={busyImport} onPress={onImport} />
         <ActionButton
           icon="📅"

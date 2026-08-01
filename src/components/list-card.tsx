@@ -24,12 +24,10 @@ export function ListCard({
   onShare: (list: TaskList) => void;
   onViewPhoto: (uri: string) => void;
 }) {
-  const { addTask, deleteList, language, renameList, scheduleList, t } = useApp();
+  const { addTask, deleteList, language, scheduleList, t } = useApp();
   const { scrollIntoView } = useKeyboardScroll();
   const [text, setText] = useState('');
   const inputRef = useRef<TextInput>(null);
-  const [isEditingTitle, setEditingTitle] = useState(false);
-  const [titleDraft, setTitleDraft] = useState(list.title);
   const [scheduleVisible, setScheduleVisible] = useState(false);
   const done = doneCount(list);
   const progress = completionProgress(list);
@@ -39,17 +37,6 @@ export function ListCard({
     if (!clean) return;
     addTask(list.id, clean);
     setText('');
-  };
-
-  const startEditingTitle = () => {
-    setTitleDraft(list.title);
-    setEditingTitle(true);
-  };
-
-  const saveTitle = () => {
-    const clean = titleDraft.trim();
-    if (clean) renameList(list.id, clean);
-    setEditingTitle(false);
   };
 
   const confirmDelete = () => {
@@ -71,29 +58,12 @@ export function ListCard({
             <IconButton icon="⠿" label={t('dragList')} onLongPress={onDragStart} />
           ) : null}
           <Text style={styles.glyph}>{iconGlyph(list.iconId)}</Text>
-          {isEditingTitle ? (
-            <TextInput
-              accessibilityLabel={t('editList')}
-              autoFocus
-              maxLength={60}
-              onChangeText={setTitleDraft}
-              onSubmitEditing={saveTitle}
-              returnKeyType="done"
-              style={styles.titleInput}
-              value={titleDraft}
-            />
-          ) : (
-            <Text style={styles.title}>{list.title}</Text>
-          )}
+          <Text style={styles.title}>{list.title}</Text>
         </View>
         <View style={styles.actions}>
-          {isEditingTitle ? (
-            <IconButton icon="✓" label={t('save')} onPress={saveTitle} />
-          ) : (
-            <IconButton icon="✎" label={t('editList')} onPress={startEditingTitle} />
-          )}
           <IconButton
-            icon="🔔"
+            active={list.alarmEnabled}
+            icon={list.alarmEnabled ? '🔔' : '🔕'}
             label={t('scheduleList')}
             onPress={() => setScheduleVisible(true)}
           />
@@ -180,20 +150,11 @@ const styles = StyleSheet.create({
     elevation: 12,
     opacity: 0.94,
   },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  titleWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  header: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  titleWrap: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 9 },
   glyph: { fontSize: 28 },
   title: { flex: 1, color: '#34415a', fontSize: 23, fontWeight: '800' },
-  titleInput: {
-    flex: 1,
-    color: '#34415a',
-    fontSize: 20,
-    fontWeight: '800',
-    borderBottomWidth: 2,
-    borderBottomColor: '#dd7252',
-    paddingVertical: 2,
-  },
-  actions: { flexDirection: 'row', gap: 3 },
+  actions: { flexDirection: 'column', gap: 4 },
   scheduleLabel: {
     marginTop: 8,
     color: '#8b5848',

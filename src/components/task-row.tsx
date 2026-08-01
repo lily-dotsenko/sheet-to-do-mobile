@@ -1,13 +1,5 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Task } from '@/domain/models';
 import { formatScheduleLabel } from '@/domain/schedule';
@@ -30,7 +22,6 @@ export function TaskRow({
     busyPhotoTaskId,
     clearMissingPhoto,
     deleteTask,
-    editTask,
     language,
     removePhoto,
     scheduleTask,
@@ -38,20 +29,7 @@ export function TaskRow({
     toggleTask,
   } = useApp();
   const photoBusy = busyPhotoTaskId === task.id;
-  const [isEditing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(task.text);
   const [scheduleVisible, setScheduleVisible] = useState(false);
-
-  const startEditing = () => {
-    setDraft(task.text);
-    setEditing(true);
-  };
-
-  const saveText = () => {
-    const clean = draft.trim();
-    if (clean) editTask(listId, task.id, clean);
-    setEditing(false);
-  };
 
   return (
     <View style={styles.wrap}>
@@ -69,68 +47,56 @@ export function TaskRow({
           </View>
         </Pressable>
 
-        {isEditing ? (
-          <TextInput
-            accessibilityLabel={t('editTask')}
-            autoFocus
-            maxLength={160}
-            onChangeText={setDraft}
-            onSubmitEditing={saveText}
-            returnKeyType="done"
-            style={styles.textInput}
-            value={draft}
-          />
-        ) : (
-          <Text style={[styles.text, task.completed && styles.textDone]}>{task.text}</Text>
-        )}
+        <Text style={[styles.text, task.completed && styles.textDone]}>{task.text}</Text>
 
-        {isEditing ? (
-          <IconButton icon="✓" label={t('save')} onPress={saveText} />
-        ) : (
-          <IconButton icon="✎" label={t('editTask')} onPress={startEditing} />
-        )}
-        <IconButton icon="🔔" label={t('scheduleTask')} onPress={() => setScheduleVisible(true)} />
-        {task.photo ? (
-          <View style={styles.photoWrap}>
-            <Pressable
-              accessibilityLabel={t('viewPhoto')}
-              accessibilityRole="imagebutton"
-              onPress={() => onViewPhoto(task.photo!.uri)}
-            >
-              <Image
-                onError={() => clearMissingPhoto(listId, task.id)}
-                source={{ uri: task.photo.uri }}
-                style={styles.thumbnail}
-              />
-            </Pressable>
-            <Pressable
-              accessibilityLabel={t('removePhoto')}
-              accessibilityRole="button"
-              hitSlop={6}
-              onPress={() => void removePhoto(listId, task.id)}
-              style={styles.removePhoto}
-            >
-              <Text style={styles.removePhotoText}>×</Text>
-            </Pressable>
-          </View>
-        ) : photoBusy ? (
-          <View style={styles.photoLoading}>
-            <ActivityIndicator color="#c65d42" size="small" />
-          </View>
-        ) : (
+        <View style={styles.actions}>
           <IconButton
-            icon="📷"
-            label={t('addPhoto')}
-            onPress={() => void attachPhoto(listId, task.id)}
+            active={task.alarmEnabled}
+            icon={task.alarmEnabled ? '🔔' : '🔕'}
+            label={t('scheduleTask')}
+            onPress={() => setScheduleVisible(true)}
           />
-        )}
-
-        <IconButton
-          danger
-          icon="×"
-          label={t('deleteTask')}
-          onPress={() => void deleteTask(listId, task.id)}
-        />
+          {task.photo ? (
+            <View style={styles.photoWrap}>
+              <Pressable
+                accessibilityLabel={t('viewPhoto')}
+                accessibilityRole="imagebutton"
+                onPress={() => onViewPhoto(task.photo!.uri)}
+              >
+                <Image
+                  onError={() => clearMissingPhoto(listId, task.id)}
+                  source={{ uri: task.photo.uri }}
+                  style={styles.thumbnail}
+                />
+              </Pressable>
+              <Pressable
+                accessibilityLabel={t('removePhoto')}
+                accessibilityRole="button"
+                hitSlop={6}
+                onPress={() => void removePhoto(listId, task.id)}
+                style={styles.removePhoto}
+              >
+                <Text style={styles.removePhotoText}>×</Text>
+              </Pressable>
+            </View>
+          ) : photoBusy ? (
+            <View style={styles.photoLoading}>
+              <ActivityIndicator color="#c65d42" size="small" />
+            </View>
+          ) : (
+            <IconButton
+              icon="📷"
+              label={t('addPhoto')}
+              onPress={() => void attachPhoto(listId, task.id)}
+            />
+          )}
+          <IconButton
+            danger
+            icon="×"
+            label={t('deleteTask')}
+            onPress={() => void deleteTask(listId, task.id)}
+          />
+        </View>
       </View>
 
       {task.scheduledAt ? (
@@ -158,7 +124,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   row: {
-    minHeight: 64,
+    minHeight: 144,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -186,17 +152,9 @@ const styles = StyleSheet.create({
   checkmark: { color: '#ffffff', fontSize: 17, fontWeight: '900', lineHeight: 20 },
   text: { flex: 1, color: '#303844', fontSize: 16, fontWeight: '600', lineHeight: 22 },
   textDone: { color: '#8e8c8a', textDecorationLine: 'line-through' },
-  textInput: {
-    flex: 1,
-    color: '#303844',
-    fontSize: 16,
-    fontWeight: '600',
-    borderBottomWidth: 2,
-    borderBottomColor: '#dd7252',
-    paddingVertical: 2,
-  },
-  photoWrap: { width: 52, height: 52, marginHorizontal: 2 },
-  thumbnail: { width: 52, height: 52, borderRadius: 13, backgroundColor: '#eee3da' },
+  actions: { flexDirection: 'column', gap: 4, alignItems: 'center' },
+  photoWrap: { width: 44, height: 44 },
+  thumbnail: { width: 44, height: 44, borderRadius: 13, backgroundColor: '#eee3da' },
   removePhoto: {
     position: 'absolute',
     top: -7,
