@@ -1,177 +1,209 @@
 # Sheet: to do
 
-Нативний офлайн-застосунок для Android на Expo SDK 57, React Native, Expo Router і
-TypeScript. Працює без реєстрації, сервера, реклами та підключення до інтернету.
+Офлайн-планер для Android та iPhone. Застосунок зберігає списки, завдання,
+розклади й фотографії локально на пристрої. Обліковий запис, сервер, API та
+підключення до інтернету для повсякденної роботи не потрібні.
 
 ## Можливості
 
-- кілька незалежних списків із назвою та тематичною іконкою;
-- додавання, виконання й видалення завдань;
-- drag-and-drop упорядкування списків;
-- календар запланованих списків і завдань;
-- точні Android-будильники з тривалим звуком та кнопкою зупинки;
-- лічильник і прогрес виконання;
-- вибір, стиснення, перегляд і видалення локальних фотографій;
-- чотири оригінальні теми та власний локальний фон із системного photo picker;
-- автоматичне локальне збереження і міграція формату даних;
-- українська й англійська локалізації;
-- sharing списку як читабельного тексту;
-- передавання списку з фотографіями одним файлом `.sheettodo` через популярні
-  месенджери, пошту, хмарний диск, Quick Share або файловий менеджер;
-- захищений імпорт `.sheettodo`, а також сумісність зі старими ZIP, JSON і deep links.
+- окремі списки з drag-and-drop сортуванням;
+- завдання, прогрес і календар запланованих справ;
+- локальні нагадування для списків і завдань;
+- фотографії до завдань і власне фонове зображення;
+- українська та англійська мови;
+- чотири вбудовані теми;
+- передавання списку як тексту або файла `.sheettodo` разом із фотографіями;
+- імпорт через picker, deep link або відкриття `.sheettodo` в Android/iOS.
+
+Android використовує точні Notifee alarms із повноекранним екраном і тривалим
+звуком. iOS використовує системне Time Sensitive notification зі звуком і
+кнопкою зупинки. iOS не дозволяє сторонньому застосунку примусово відкрити
+full-screen alarm або нескінченно відтворювати notification sound.
+
+## Технології
+
+- Expo SDK 57, React Native 0.86 і React 19;
+- Expo Router та Continuous Native Generation;
+- TypeScript у strict-режимі;
+- React Context для стану;
+- AsyncStorage для versioned JSON;
+- Expo FileSystem для приватних JPEG;
+- Notifee для локальних Android/iOS notifications;
+- Jest, ESLint, Prettier і Maestro.
+
+Notifee є нативним модулем, тому повний застосунок не працює в Expo Go. Для
+розробки потрібен development build або локальна native-збірка.
 
 ## Архітектура
 
-- `src/app` — маршрути Expo Router, екран будильника та підтвердження імпорту;
-- `src/components` — картки списків, завдання й нативні модальні вікна;
-- `src/domain` — типи `Task`, `TaskList`, операції та міграції даних;
-- `src/state` — React Context, локальне сховище і керування файлами;
-- `src/services` — AsyncStorage, фотографії, `.sheettodo`, sharing та Android-будильники;
-- `src/i18n` і `src/theme` — локалізації, іконки та локальні фонові теми;
-- `assets` — оригінальні локальні PNG без CDN.
+```text
+Screens / reusable components
+              |
+              v
+AppProvider: state and side-effect orchestration
+        |                   |
+        v                   v
+Domain models          Platform services
+and migrations         storage, files, sharing, notifications
+        \                   /
+         v                 v
+       AsyncStorage + private files + OS notification registry
+```
 
-AsyncStorage містить лише версіоновані метадані. Фотографії й власний фон зберігаються
-окремими JPEG у приватній document directory застосунку, а не як base64.
+Бізнес-логіка, моделі, валідація, стан, сховище, імпорт/експорт, дизайн-токени й
+UI спільні для Android та iOS. Платформні відмінності обмежені notification
+options, дозволами, file association і build/signing процесом.
 
-## Встановлення залежностей і перевірки
+## Структура
 
-Потрібні Node.js 22.13 або новіший і npm.
+```text
+src/app/          маршрути й екрани Expo Router
+src/components/   повторно використовуваний UI
+src/domain/       моделі, інваріанти, розклад і міграції
+src/services/     сховище, файли, імпорт/експорт і notifications
+src/state/        AppProvider і keyboard orchestration
+src/theme/        теми та піктограми
+assets/           іконки та фонові зображення
+docs/             технічна й інсталяційна документація
+.maestro/         E2E flows і device checklist
+```
+
+## Вимоги
+
+Загальні:
+
+- Node.js 22 LTS;
+- npm;
+- Git.
+
+Для Android потрібні Android Studio, Android SDK і JDK або EAS Build. Для iOS
+потрібні macOS, актуальний Xcode, CocoaPods і підключений iPhone; paid ad hoc
+збірку також можна створити через EAS Build.
+
+## Встановлення залежностей
 
 ```powershell
-npm install
+npm ci
+```
+
+Якщо `package-lock.json` свідомо оновлюється, використовуй `npm install`.
+
+## Локальний запуск
+
+Metro для development client:
+
+```powershell
+npm run dev
+```
+
+Android:
+
+```powershell
+npm run android
+```
+
+iOS на macOS:
+
+```bash
+npm run ios -- --device
+```
+
+Команда iOS генерує native-проєкт через CNG, встановлює pods і запускає збірку.
+Каталоги `android/` та `ios/` генеруються локально й не зберігаються в Git.
+
+## Перевірки
+
+```powershell
 npm run format:check
 npm run lint
 npm run typecheck
 npm test
+npm run test:integration
 npm run doctor
 ```
 
-## Запуск через Expo Go
-
-Версія 0.4.0 використовує нативний модуль Notifee для справжніх Android-будильників,
-тому повністю не запускається у звичайному Expo Go. Для тестування використовуй
-development build або готовий preview APK.
-
-## Запуск development build
+Перевірка платформних Metro/Hermes bundles:
 
 ```powershell
-npx eas-cli@latest build --platform android --profile development
-npm run dev
+npx expo export --platform android --output-dir .expo-ci/android --clear
+npx expo export --platform ios --output-dir .expo-ci/ios --clear
 ```
 
-Встанови development APK за посиланням EAS, запусти `npm run dev` і відкрий проєкт у
-development client.
+Maestro запускається на встановленому development/preview build:
 
-## Створення APK
+```powershell
+npm run test:e2e
+```
 
-Профіль `preview` має `distribution: internal` і `android.buildType: apk`:
+Фізичні дозволи, photo picker, alarms і file association перевіряються за
+[device checklist](.maestro/DEVICE_CHECKLIST.md). GitHub Actions виконує лише
+непублікуючі перевірки без signing credentials.
+
+## Android APK
+
+Preview APK для прямого встановлення:
 
 ```powershell
 npx eas-cli@latest build --platform android --profile preview
 ```
 
-Після завершення збережи artifact як `dist/sheet-to-do-0.4.0.apk`. Папка `dist`
-ігнорується Git. Перевір checksum:
+Локальний debug build створюється через `npm run android`. Інструкції з APK,
+ADB, оновлення без втрати даних і signing наведені в
+[docs/ANDROID_INSTALL.md](docs/ANDROID_INSTALL.md).
 
-```powershell
-Get-FileHash dist\sheet-to-do-0.4.0.apk -Algorithm SHA256
-```
+## iPhone
 
-Перевірена preview-збірка 0.4.0 (versionCode 4) завершена в
-[EAS Build](https://expo.dev/accounts/sugar4vaders-team/projects/sheet-to-do/builds/cb8f5d66-126b-41c2-872e-90c94aa72199).
-Локальний APK `dist/sheet-to-do-0.4.0.apk` має розмір `111088536` байт
-(приблизно 105,94 MiB) і SHA-256
-`B8EF04BC75FD4739B1518E37DB431760621217B3BF07C6EB0B64DB6C92BAA421`.
+Для особистого iPhone підтримуються два варіанти:
 
-Профіль `production` підготовлений для майбутнього AAB і сам нічого не публікує у
-Google Play.
+1. безкоштовний Apple ID та локальна збірка через Xcode Personal Team;
+2. платний Apple Developer Program та ad hoc IPA через Xcode або EAS.
 
-## Встановлення APK на Android
+Безкоштовний provisioning profile діє 7 днів, після чого застосунок потрібно
+зібрати й встановити повторно. Ad hoc build працює лише на iPhone, UDID якого
+внесено до provisioning profile. Повна інструкція: [docs/IOS_INSTALL.md](docs/IOS_INSTALL.md).
 
-1. Передай `sheet-to-do-0.4.0.apk` на телефон через месенджер, Drive, USB або Quick Share.
-2. Відкрий файл і, якщо Android попросить, разово дозволь цьому джерелу встановлювати
-   невідомі застосунки.
-3. Перевір назву **Sheet: to do** і натисни **Встановити**.
-4. Після встановлення цей дозвіл для джерела можна вимкнути.
+Жодна build-команда в цьому репозиторії не публікує застосунок у Google Play або
+App Store. Команди `eas submit` у проєкті не використовуються.
 
-Детальніше: [docs/ANDROID_INSTALL.md](docs/ANDROID_INSTALL.md).
+## Дані, API та змінні середовища
 
-## Оновлення вже встановленої версії
+Backend, віддаленого API, авторизації, токенів і серверної бази даних немає.
+Обов'язкові змінні середовища відсутні.
 
-Новий APK має той самий package `com.lilydotsenko.sheettodo`, той самий signing key і
-більший `android.versionCode`. Встанови APK поверх старої версії — списки та локальні
-фото залишаться. Не видаляй застосунок перед оновленням, бо uninstall очищає приватні
-дані.
+Метадані зберігаються в AsyncStorage під ключем `sheet-to-do:data`. Фотографії та
+власний фон лежать окремими JPEG у приватній document directory. Схема даних
+залишається `AppData v2`, тому Android-оновлення з 0.4.0 не потребує міграції.
 
-## Резервне копіювання й перенесення списків
+`.sheettodo` містить один список і доступні фотографії. Імпорт перевіряє версію,
+розмір, структуру ZIP, безпечність шляхів, JPEG markers і CRC32. Видалення
+застосунку очищає приватні дані; перед перевстановленням варто експортувати
+важливі списки.
 
-У картці списку натисни sharing і вибери один із двох зрозумілих режимів:
+## Дозволи
 
-- **Як звичайний текст** — назва, прогрес і checklist без фотографій; месенджер отримує
-  саме текст, а не посилання;
-- **Список із фотографіями** — один файл `назва-списку.sheettodo` з усіма даними та фото.
+Android запитує notifications і, для точного будильника, системний доступ
+Alarms & reminders. iOS запитує notifications і доступ до вибраних фотографій.
+Камера, мікрофон і геолокація не використовуються.
 
-Файл `.sheettodo` можна надіслати як документ через Telegram, WhatsApp, Viber, Signal,
-пошту, Drive чи інший застосунок, який приймає файли. На іншому Android-пристрої з
-версією 0.4.0+ користувач натискає файл, обирає **Sheet: to do**, перевіряє назву,
-кількість завдань і фото та підтверджує імпорт. Якщо конкретний месенджер не передає
-тип файла Android, потрібно зберегти вкладення і вибрати його кнопкою **Імпорт** у
-застосунку. Дані при цьому не відправляються на наш сервер — сервера немає.
+## Типові проблеми
 
-Усередині `.sheettodo` знаходиться versioned `manifest.json` і окремі JPEG. Імпорт
-перевіряє сигнатуру, CRC32, версію, типи, розміри, кількість записів, безпечність шляхів
-і відповідність фотографій manifest. Нові ID створюються завжди, фото копіюються у
-приватну директорію, а тимчасові файли прибираються після успіху або помилки. Частково
-відсутні заявлені фото пропускаються з попередженням; пошкоджені, надмірні чи небезпечні
-пакети відхиляються.
+- **Expo Go не запускає застосунок:** потрібен development build через Notifee.
+- **Android alarm не спрацював:** перевір notifications, Alarms & reminders і
+  battery optimization.
+- **iOS notification без звуку:** перевір Notifications, Focus і Silent Mode;
+  звичайний Time Sensitive alert не обходить усі системні обмеження.
+- **Xcode не підписує build:** вибери правильний Team, унікальний bundle ID,
+  увімкни automatic signing і Developer Mode на iPhone.
+- **`.sheettodo` не відкривається напряму:** збережи файл у Files/Downloads і
+  скористайся кнопкою імпорту в застосунку.
+- **Дані зникли після reinstall:** uninstall очищає app sandbox; імпортуй раніше
+  збережений `.sheettodo`.
 
-Для контейнера використано `fflate` 0.8.x (MIT), невелику pure-JavaScript бібліотеку
-без сервера і додаткових Android permissions. Для будильників використано Notifee 9.x
-(Apache-2.0). Notifee виключено лише з metadata-перевірки React Native Directory в
-Expo Doctor: каталог позначає пакет як unmaintained, але native prebuild та Android
-release bundle перевіряються окремо для кожного релізу.
+## Документація
 
-## Структура локальних даних
-
-- ключ AsyncStorage: `sheet-to-do:data`;
-- версія локального формату: `2`, міграція з v1 автоматична;
-- списки: ID, назва, icon ID, порядок, розклад і масив завдань;
-- завдання: ID, текст, стан, розклад і необов’язкові метадані JPEG;
-- preferences: theme ID, метадані власного фону і мова;
-- фото завдань: `task-photos`, до 1600 px, JPEG 0.76;
-- власний фон: `custom-backgrounds`, до 2400 px, JPEG 0.82;
-- пошкоджений payload відкладається під ключ `sheet-to-do:data:corrupt`.
-
-Фотофайл видаляється разом із фото, завданням або списком. Якщо Android уже втратив
-файл, застосунок очищає застарілі метадані без аварійного завершення.
-
-## Дозволи Android
-
-Застосунок не просить геолокацію, контакти, мікрофон або камеру; `CAMERA` і
-`RECORD_AUDIO` заблоковані в `app.json`. Фото й документи обираються через системні
-picker-и без широкого доступу до медіатеки чи файлової системи. Share Sheet відкривається
-лише після дії користувача.
-
-При першому будильнику Android запитує сповіщення та, на Android 12+, системний доступ
-**Будильники й нагадування** (`SCHEDULE_EXACT_ALARM`). Повноекранний екран дзвінка
-використовує `USE_FULL_SCREEN_INTENT`; звук триває, доки користувач не натисне кнопку
-зупинки.
-
-## Відомі обмеження
-
-- пряме відкриття `.sheettodo` залежить від того, як конкретна версія месенджера
-  передає MIME-тип; надійний fallback — зберегти файл і натиснути **Імпорт**;
-- `.sheettodo` з фотографіями потребує версії 0.4.0+, старі `.sheet-to-do.zip` і JSON
-  залишаються доступними для імпорту;
-- JSON, deep links і читабельний текст не містять фотографій;
-- розклад і системні notification ID не переносяться між пристроями;
-- власний фон є налаштуванням пристрою й не входить у пакет окремого списку;
-- виробники Android можуть обмежувати фонову роботу; для надійності потрібно дозволити
-  будильники та не забороняти фоновий запуск Sheet: to do;
-- cloud sync немає: резервні копії створює користувач;
-- застосунок орієнтований на Android 7+ відповідно до Expo SDK 57;
-- `npm audit` може показувати транзитивні advisory у build/test tooling React Native та
-  Expo; `npm audit fix --force` не застосовується, бо пропонує несумісні версії.
-
-Походження та ліцензія візуальних файлів описані в
-[docs/ASSET_SOURCES.md](docs/ASSET_SOURCES.md).
+- [кросплатформний аудит](docs/CROSS_PLATFORM_AUDIT.md);
+- [загально-технічна документація](docs/TECHNICAL_DOCUMENTATION.md);
+- [локальна модель даних](docs/DATA_DOCUMENTATION.md);
+- [встановлення Android](docs/ANDROID_INSTALL.md);
+- [встановлення iOS](docs/IOS_INSTALL.md);
+- [походження візуальних матеріалів](docs/ASSET_SOURCES.md).

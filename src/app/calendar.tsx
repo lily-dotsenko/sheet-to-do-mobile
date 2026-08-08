@@ -37,7 +37,12 @@ export default function CalendarScreen() {
   const theme = getTheme(data.preferences.themeId, data.preferences.customBackground);
 
   return (
-    <ImageBackground resizeMode="cover" source={theme.image} style={styles.background}>
+    <ImageBackground
+      resizeMode="cover"
+      source={theme.image}
+      style={styles.background}
+      testID="calendar-screen"
+    >
       <View
         pointerEvents="none"
         style={[StyleSheet.absoluteFill, { backgroundColor: theme.scrim }]}

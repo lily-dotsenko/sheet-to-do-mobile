@@ -28,15 +28,32 @@ export function HomeHeader({
       <Text style={[styles.title, { color: theme.titleColor }]}>{t('appTitle')}</Text>
       <Text style={[styles.subtitle, { color: theme.titleColor }]}>{t('appSubtitle')}</Text>
       <View style={styles.actions}>
-        <ActionButton icon="+" label={t('addList')} onPress={onCreate} variant="primary" />
-        <ActionButton icon="⇩" label={t('importList')} loading={busyImport} onPress={onImport} />
+        <ActionButton
+          icon="+"
+          label={t('addList')}
+          onPress={onCreate}
+          testID="home-add-list"
+          variant="primary"
+        />
+        <ActionButton
+          icon="⇩"
+          label={t('importList')}
+          loading={busyImport}
+          onPress={onImport}
+          testID="home-import"
+        />
         <ActionButton
           icon="📅"
           label={t('calendar')}
           onPress={() => router.push('/calendar' as Href)}
+          testID="home-calendar"
         />
-        <ActionButton icon="🎨" label={t('themes')} onPress={onThemes} />
-        <ActionButton label={t('switchLanguage')} onPress={() => setLanguage(nextLanguage)} />
+        <ActionButton icon="🎨" label={t('themes')} onPress={onThemes} testID="home-themes" />
+        <ActionButton
+          label={t('switchLanguage')}
+          onPress={() => setLanguage(nextLanguage)}
+          testID="home-language"
+        />
       </View>
     </View>
   );

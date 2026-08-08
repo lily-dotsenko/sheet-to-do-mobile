@@ -252,6 +252,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const result = await photoFiles.pickAndSave();
         if (result.status === 'picked') {
+          const taskStillExists = dataRef.current?.lists
+            .find((list) => list.id === listId)
+            ?.tasks.some((task) => task.id === taskId);
+          if (!taskStillExists) {
+            await photoFiles.delete(result.photo.uri);
+            return;
+          }
           commit((current) => setTaskPhoto(current, listId, taskId, result.photo));
         }
       } catch {
@@ -284,12 +291,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const importList = useCallback(
     (list: TaskList) => {
+      let added = false;
       try {
-        commit((current) => addList(current, list));
+        commit((current) => {
+          const next = addList(current, list);
+          added = next !== current;
+          return next;
+        });
       } catch {
         setNotice('listLimitError');
         return false;
       }
+      if (!added) return false;
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
         () => undefined,
       );

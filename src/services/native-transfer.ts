@@ -81,10 +81,7 @@ export async function shareListAsSheetFile(
     file.write(createListPackage(list, photoInputs));
     await Sharing.shareAsync(file.uri, {
       dialogTitle,
-      // A dedicated type lets Android route downloaded files back to this app.
-      // The custom extension stays intact in document-capable messengers.
-      // Generic binary documents are accepted by Telegram, WhatsApp, Viber,
-      // Signal, email, and file managers. The .sheettodo name identifies it.
+      // A generic MIME type preserves the custom extension in common messengers.
       mimeType: PACKAGE_SHARE_MIME_TYPE,
       UTI: 'public.data',
     });

@@ -1,0 +1,28 @@
+appId: com.lilydotsenko.sheettodo
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: home-screen
+- tapOn:
+    id: home-add-list
+- tapOn:
+    id: create-list-name
+- inputText: Cross platform
+- hideKeyboard
+- tapOn:
+    id: create-list-submit
+- assertVisible: Cross platform
+- tapOn:
+    id: new-task-input
+- inputText: Persistent task
+- hideKeyboard
+- tapOn:
+    id: add-task
+- assertVisible: Persistent task
+- tapOn:
+    id: task-toggle
+- stopApp
+- launchApp
+- assertVisible: Cross platform
+- assertVisible: Persistent task

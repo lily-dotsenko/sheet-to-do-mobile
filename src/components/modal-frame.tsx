@@ -43,6 +43,7 @@ export function ModalFrame({
             accessibilityRole="button"
             onPress={onClose}
             style={styles.backdrop}
+            testID="modal-backdrop"
           />
           <View style={styles.sheet}>
             <View style={styles.handle} />
@@ -54,6 +55,7 @@ export function ModalFrame({
                 hitSlop={8}
                 onPress={onClose}
                 style={styles.close}
+                testID="modal-close"
               >
                 <Text style={styles.closeText}>×</Text>
               </Pressable>

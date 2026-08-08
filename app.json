@@ -2,14 +2,46 @@
   "expo": {
     "name": "Sheet: to do",
     "slug": "sheet-to-do",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "orientation": "default",
     "icon": "./assets/branding/app-icon.png",
     "scheme": "sheettodo",
     "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.lilydotsenko.sheettodo",
+      "buildNumber": "5",
+      "supportsTablet": false,
+      "icon": "./assets/branding/app-icon-ios.png",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSAllowsLocalNetworking": true
+        },
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "Sheet: to do List",
+            "CFBundleTypeRole": "Editor",
+            "LSHandlerRank": "Owner",
+            "LSItemContentTypes": ["com.lilydotsenko.sheettodo.list"]
+          }
+        ],
+        "UTExportedTypeDeclarations": [
+          {
+            "UTTypeIdentifier": "com.lilydotsenko.sheettodo.list",
+            "UTTypeDescription": "Sheet: to do List",
+            "UTTypeConformsTo": ["public.data"],
+            "UTTypeTagSpecification": {
+              "public.filename-extension": ["sheettodo"],
+              "public.mime-type": ["application/vnd.sheet-to-do.list"]
+            }
+          }
+        ]
+      }
+    },
     "android": {
       "package": "com.lilydotsenko.sheettodo",
-      "versionCode": 4,
+      "versionCode": 5,
       "adaptiveIcon": {
         "backgroundColor": "#F39874",
         "foregroundImage": "./assets/branding/app-icon.png"
@@ -62,12 +94,12 @@
         "expo-image-picker",
         {
           "cameraPermission": false,
-          "microphonePermission": false
+          "microphonePermission": false,
+          "photosPermission": "Дозволити Sheet: to do вибирати фотографії / Allow Sheet: to do to select photos"
         }
       ],
       "expo-localization",
       "expo-sharing",
-      "expo-notifications",
       [
         "expo-splash-screen",
         {
@@ -76,7 +108,8 @@
           "imageWidth": 180,
           "resizeMode": "contain"
         }
-      ]
+      ],
+      "./plugins/with-ios-local-notifications"
     ],
     "experiments": {
       "typedRoutes": true,

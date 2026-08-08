@@ -1,10 +1,9 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
 # dependencies
 node_modules/
 
 # Expo
 .expo/
+.expo-ci/
 dist/
 web-build/
 expo-env.d.ts
@@ -13,10 +12,16 @@ expo-env.d.ts
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
+*.cer
+*.csr
+*.der
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.provisionprofile
+credentials.json
 
 # Metro
 .metro-health-check*
@@ -25,13 +30,17 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+coverage/
 
-# macOS
+# OS metadata
 .DS_Store
+desktop.ini
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -41,4 +50,6 @@ yarn-error.*
 /android
 
 # User-owned generated material is not part of the application source.
-/output/
+/output/*
+!/output/pdf/
+!/output/pdf/*.pdf

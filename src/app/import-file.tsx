@@ -22,7 +22,7 @@ type LoadState =
 export default function ImportFileScreen() {
   const params = useLocalSearchParams<{ uri?: string | string[] }>();
   const router = useRouter();
-  const { importList, t } = useApp();
+  const { data, importList, t } = useApp();
   const uri = Array.isArray(params.uri) ? params.uri[0] : params.uri;
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [busy, setBusy] = useState(false);
@@ -96,10 +96,11 @@ export default function ImportFileScreen() {
                 onPress={() => router.replace('/')}
               />
               <ActionButton
-                disabled={busy}
+                disabled={busy || !data}
                 label={t('importConfirm')}
                 loading={busy}
                 onPress={() => void finishImport(state.value)}
+                testID="import-file-confirm"
                 variant="primary"
               />
             </View>

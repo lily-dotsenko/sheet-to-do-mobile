@@ -41,6 +41,7 @@ export function TaskRow({
           hitSlop={4}
           onPress={() => toggleTask(listId, task.id)}
           style={({ pressed }) => [styles.checkTarget, pressed && styles.pressed]}
+          testID="task-toggle"
         >
           <View style={[styles.checkbox, task.completed && styles.checkboxDone]}>
             {task.completed ? <Text style={styles.checkmark}>✓</Text> : null}

@@ -120,7 +120,12 @@ export default function HomeScreen() {
   };
 
   return (
-    <ImageBackground resizeMode="cover" source={theme.image} style={styles.background}>
+    <ImageBackground
+      resizeMode="cover"
+      source={theme.image}
+      style={styles.background}
+      testID="home-screen"
+    >
       <View
         pointerEvents="none"
         style={[StyleSheet.absoluteFill, { backgroundColor: theme.scrim }]}

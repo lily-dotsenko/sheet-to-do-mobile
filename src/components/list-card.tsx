@@ -51,7 +51,7 @@ export function ListCard({
   };
 
   return (
-    <View style={[styles.card, dragActive && styles.cardDragging]}>
+    <View style={[styles.card, dragActive && styles.cardDragging]} testID="list-card">
       <View style={styles.header}>
         <View style={styles.titleWrap}>
           {onDragStart ? (
@@ -115,9 +115,16 @@ export function ListCard({
           ref={inputRef}
           returnKeyType="done"
           style={styles.input}
+          testID="new-task-input"
           value={text}
         />
-        <IconButton disabled={!text.trim()} icon="＋" label={t('addTask')} onPress={submit} />
+        <IconButton
+          disabled={!text.trim()}
+          icon="＋"
+          label={t('addTask')}
+          onPress={submit}
+          testID="add-task"
+        />
       </View>
 
       <ScheduleModal
