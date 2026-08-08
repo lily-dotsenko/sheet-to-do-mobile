@@ -48,6 +48,7 @@ export default function ImportScreen() {
                   importList(result.list!);
                   router.replace('/');
                 }}
+                testID="import-confirm"
                 variant="primary"
               />
             </View>

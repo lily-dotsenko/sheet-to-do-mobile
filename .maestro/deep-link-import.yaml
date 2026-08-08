@@ -1,0 +1,10 @@
+appId: com.lilydotsenko.sheettodo
+---
+- launchApp
+- openLink: sheettodo:///import?data=eyJmb3JtYXQiOiJzaGVldC10by1kbyIsInZlcnNpb24iOjEsImV4cG9ydGVkQXQiOiIyMDI2LTAxLTAxVDAwOjAwOjAwLjAwMFoiLCJwaG90b3NPbWl0dGVkIjowLCJsaXN0Ijp7InRpdGxlIjoiSW1wb3J0ZWQgbGlzdCIsImljb25JZCI6ImdlbmVyYWwiLCJ0YXNrcyI6W3sidGV4dCI6IkltcG9ydGVkIHRhc2siLCJjb21wbGV0ZWQiOmZhbHNlfV19fQ
+- assertVisible:
+    id: import-confirm
+- tapOn:
+    id: import-confirm
+- assertVisible: Imported list
+- assertVisible: Imported task

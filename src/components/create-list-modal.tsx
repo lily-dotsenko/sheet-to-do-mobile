@@ -37,6 +37,7 @@ export function CreateListModal({ visible, onClose }: { visible: boolean; onClos
         placeholderTextColor="#9a8983"
         returnKeyType="done"
         style={styles.input}
+        testID="create-list-name"
         value={title}
       />
       <Text style={styles.label}>{t('chooseIcon')}</Text>
@@ -70,6 +71,7 @@ export function CreateListModal({ visible, onClose }: { visible: boolean; onClos
           disabled={!title.trim()}
           label={t('create')}
           onPress={submit}
+          testID="create-list-submit"
           variant="primary"
         />
       </View>

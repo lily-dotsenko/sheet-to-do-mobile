@@ -67,6 +67,7 @@ export function ThemePickerModal({
               disabled={busyBackground}
               key={theme.id}
               onPress={() => void setTheme(theme.id)}
+              testID={`theme-${theme.id}`}
               style={({ pressed }) => [
                 styles.item,
                 selected && styles.selected,

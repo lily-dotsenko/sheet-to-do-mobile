@@ -1,6 +1,6 @@
 # Sheet: to do — документація локальної моделі даних
 
-Версія документа відповідає формату даних `2` і застосунку `0.4.0`.
+Версія документа відповідає формату даних `2` і застосунку `0.5.0`.
 
 ## Паспорт моделі
 
@@ -41,7 +41,7 @@ AsyncStorage: sheet-to-do:data
 
 AsyncStorage є source of truth для зв’язків і preferences. FileSystem містить
 бінарні об’єкти, на які JSON посилається через `file://` URI. Notification IDs
-посилаються на Android/Notifee registry.
+посилаються на локальний Notifee registry конкретної платформи та установки.
 
 ## Ключові кардинальності
 
@@ -282,7 +282,7 @@ SOI/EOI markers.
 | AppStorage     | JSON persistence/write ordering       | load/save/recovery                  |
 | File stores    | compression, managed URI, CRUD        | photos/backgrounds                  |
 | Package parser | validation untrusted input            | paths, sizes, CRC, schema           |
-| Android        | sandbox і notification registry       | document directory, alarms          |
+| Platform       | sandbox і notification registry       | Android/iOS files and reminders     |
 
 Між JSON і FileSystem немає спільної ACID-транзакції. Код компенсує це порядком
 операцій, cleanup у `catch/finally` та startup scrub.
@@ -321,7 +321,7 @@ SOI/EOI markers.
 | File     | Background             | file URI              | preferences                     |
 | Transfer | `PackageManifest`      | format + version      | one list snapshot               |
 | Transfer | Photo descriptor       | archive path          | one manifest task               |
-| External | Notifee alarm          | notification ID       | list/task schedule              |
+| External | Notifee reminder       | notification ID       | list/task schedule              |
 
 ## Підсумок
 

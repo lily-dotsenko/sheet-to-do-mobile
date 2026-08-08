@@ -1,48 +1,46 @@
 # Sheet: to do — загально-технічна документація
 
-Версія документа відповідає застосунку `0.4.0` та Expo SDK 57.
+Версія документа відповідає застосунку `0.5.0`, Expo SDK 57 та React Native 0.86.
 
 ## Паспорт проєкту
 
-| Аспект     | Рішення                                       |
-| ---------- | --------------------------------------------- |
-| Назва      | Sheet: to do                                  |
-| Тип        | Нативний офлайн-планер для Android            |
-| Платформа  | Android 7+; development/preview build         |
-| Мови       | Українська та англійська                      |
-| Runtime    | Expo SDK 57, React Native 0.86, React 19      |
-| Навігація  | Expo Router, file-based routes                |
-| Стан       | React Context + синхронний `dataRef`          |
-| Зберігання | AsyncStorage і приватні файли Expo FileSystem |
-| Сповіщення | Notifee, точні Android alarms                 |
-| Мережа     | Не потрібна для роботи застосунку             |
+| Аспект         | Рішення                                           |
+| -------------- | ------------------------------------------------- |
+| Тип            | offline-first mobile planner                      |
+| Платформи      | Android та iPhone                                 |
+| Мови           | українська й англійська                           |
+| UI runtime     | React Native 0.86, React 19                       |
+| Platform layer | Expo SDK 57, CNG, EAS/Xcode/Gradle                |
+| Навігація      | Expo Router, file-based routes                    |
+| Стан           | React Context + synchronous `dataRef`             |
+| Зберігання     | AsyncStorage і приватні Expo FileSystem files     |
+| Сповіщення     | Notifee exact alarm / Time Sensitive notification |
+| Мережа         | не потрібна для роботи застосунку                 |
+| Backend/API    | відсутні                                          |
 
-### Мета й межі
+## Мета та межі
 
 Sheet: to do дає змогу вести незалежні списки, планувати їх у календарі,
-прикріплювати фотографії та отримувати точні будильники без облікового запису,
-сервера й хмарної синхронізації. Поточна версія має один локальний профіль,
-експортує один список за раз і потребує native build: Notifee не працює у
-звичайному Expo Go.
+прикріплювати фотографії й отримувати локальні reminders без облікового запису,
+сервера або cloud sync. Один installation sandbox є одним локальним профілем.
+
+Платформи підтримуються в одному Expo-проєкті. Generated `android/` та `ios/`
+відтворюються з `app.json` і не є джерелом істини в Git.
 
 ## Функціональні модулі
 
-| Модуль      | Можливості                                    | Основні компоненти                |
-| ----------- | --------------------------------------------- | --------------------------------- |
-| Списки      | створення, видалення, drag-and-drop, прогрес  | `ListCard`, `DraggableFlatList`   |
-| Завдання    | додавання, виконання, видалення, фото         | `TaskRow`, domain operations      |
-| Календар    | місячна сітка та agenda                       | `CalendarGrid`, `/calendar`       |
-| Будильники  | exact alarm, full-screen UI, тривалий звук    | Notifee, `/alarm`                 |
-| Теми        | чотири фони та власний JPEG                   | `ThemePickerModal`, file store    |
-| Передавання | текст і пакет `.sheettodo`                    | `native-transfer`, `list-package` |
-| Імпорт      | picker, Android intent, legacy JSON/deep link | `/import-file`, `/import`         |
-| Локалізація | українська/англійська, календар               | `translations`, `calendar-locale` |
+| Модуль      | Можливості                          | Реалізація                      |
+| ----------- | ----------------------------------- | ------------------------------- |
+| Списки      | CRUD, drag-and-drop, progress       | `ListCard`, domain functions    |
+| Завдання    | CRUD, completion, task photos       | `TaskRow`, `AppProvider`        |
+| Календар    | month grid та agenda                | `CalendarGrid`, `/calendar`     |
+| Reminders   | list/task local schedule            | Notifee, `/alarm`               |
+| Теми        | чотири фони та custom JPEG          | theme registry, file store      |
+| Transfer    | text, JSON/deep link, `.sheettodo`  | transfer/package services       |
+| Import      | picker, file association, deep link | `/import-file`, `/import`       |
+| Локалізація | `uk`/`en`, calendar locale          | translations and locale helpers |
 
 ## Архітектурна позиція
-
-Застосунок є локальним mobile client без backend-рівня. UI викликає операції
-`AppProvider`; domain-функції повертають новий незмінний `AppData`; сервісний шар
-серіалізує metadata та керує файлами й alarms.
 
 ```text
 Screens / Components
@@ -55,164 +53,218 @@ AppProvider (state, orchestration, notices)
         +----> Services (storage, files, transfer, notifications)
                          |
                          v
-        AsyncStorage / private JPEG / Android Notifee
+      AsyncStorage / private JPEG / platform notification registry
 ```
 
-| Рівень   | Відповідальність                                   | Приклади                              |
-| -------- | -------------------------------------------------- | ------------------------------------- |
-| UI       | введення, підтвердження, accessibility, navigation | screens, cards, modals                |
-| State    | оркестрація та синхронізація React state           | `AppProvider`, notices, busy flags    |
-| Domain   | інваріанти й immutable-оновлення                   | ліміти, CRUD, schedule helpers        |
-| Services | I/O та інтеграція з платформою                     | storage, FileSystem, Sharing, Notifee |
-| Android  | sandbox, picker, Share Sheet, alarms               | permissions та intent routing         |
+| Рівень          | Відповідальність                                        |
+| --------------- | ------------------------------------------------------- |
+| UI              | input, confirmation, accessibility, responsive layout   |
+| State           | orchestration, busy state, persistence calls, cleanup   |
+| Domain          | schema, limits, validation, immutable transitions       |
+| Services        | storage, files, archive parsing, sharing, notifications |
+| Platform config | identifiers, permissions, UTI/MIME, signing profiles    |
 
-## Маршрути й навігація
+Business logic, models, state, storage, transfer, theme tokens and components are
+shared. Platform branching is limited to notification options, permissions and
+native build configuration.
 
-| Route          | Призначення                  | Параметри                         |
-| -------------- | ---------------------------- | --------------------------------- |
-| `/`            | головний екран зі списками   | —                                 |
-| `/calendar`    | календар і agenda            | —                                 |
-| `/alarm`       | екран активного будильника   | `notificationId`, `title`, `body` |
-| `/import`      | сумісний імпорт із deep link | `data`                            |
-| `/import-file` | підтвердження `.sheettodo`   | `uri`                             |
+## Маршрути
 
-`+native-intent.tsx` переводить Android `content://` або `file://` URI на
-`/import-file`. `AlarmNavigationHandler` відкриває `/alarm` після доставки або
-натискання Notifee notification.
+| Route          | Призначення               | Параметри                    |
+| -------------- | ------------------------- | ---------------------------- |
+| `/`            | lists and tasks           | —                            |
+| `/calendar`    | calendar and agenda       | —                            |
+| `/alarm`       | active alarm screen       | notification ID, title, body |
+| `/import`      | deep-link confirmation    | encoded `data`               |
+| `/import-file` | `.sheettodo` confirmation | encoded file `uri`           |
 
-## Життєвий цикл стану
+`+native-intent.tsx` converts Android `content://` and Android/iOS `file://` URI
+into `/import-file`. Scheme `sheettodo` handles compact JSON deep links. On iOS,
+the exported UTI `com.lilydotsenko.sheettodo.list` associates `.sheettodo` with
+the app.
+
+Expo Router provides native stacks. Safe areas are applied to every full screen,
+Android predictive back stays enabled and iOS uses the native edge-back gesture.
+
+## Життєвий цикл даних
 
 ### Запуск
 
-1. `AppStorage.load()` читає JSON із AsyncStorage.
-2. `migrateStoredData()` перевіряє версію та нормалізує старі формати.
-3. `scrubMissingFiles()` перевіряє task photos і custom background.
-4. Очищений документ стає поточним `dataRef` і React state.
-5. Пошкоджений payload резервується; застосунок запускається з порожніми даними.
+1. `AppStorage.load()` reads JSON from AsyncStorage.
+2. `migrateStoredData()` validates or upgrades the stored shape.
+3. `scrubMissingFiles()` checks task photos and custom background.
+4. Clean data becomes current `dataRef` and React state.
+5. Invalid raw payload is copied to the corrupt backup key and reset safely.
 
-### Зміна даних
+### Зміна
 
-1. Компонент викликає метод контексту.
-2. Domain-функція повертає новий `AppData` й оновлює `updatedAt`.
-3. `commit()` синхронно оновлює `dataRef` та React state.
-4. Snapshot додається до послідовної AsyncStorage write queue.
-5. Помилка збереження не блокує UI, але створює notice `saveError`.
+1. UI invokes an `AppProvider` operation.
+2. A domain function returns a new `AppData` value.
+3. `commit()` synchronously updates `dataRef` and React state.
+4. Serialized snapshots enter the AsyncStorage write queue.
+5. A failed write produces `saveError` without crashing the UI.
 
-Черга не дозволяє повільнішій старій операції перезаписати новіший стан.
+The write queue prevents a slower older snapshot from overwriting a newer one.
 
 ## Списки та завдання
 
-- максимум 100 списків і 500 завдань у кожному;
-- назва списку — до 60, текст завдання — до 160 символів;
-- порядок списків відповідає порядку елементів масиву;
-- прогрес обчислюється як `completed / tasks.length` і не дублюється у storage;
-- завершення task з активним alarm скасовує його та очищає schedule;
-- невідомий `listId`/`taskId` дає no-op, а не аварійне завершення.
+- up to 100 lists and 500 tasks per list;
+- list title: 1–60 characters;
+- task text: 1–160 characters;
+- progress is derived from completed tasks and is not stored separately;
+- completing a task cancels and clears its reminder;
+- unknown list/task IDs result in a safe no-op;
+- imported aggregates always receive new IDs.
 
-## Планування й будильники
+## Notifications
 
-Розклад є необов’язковою ISO-датою на рівні списку або завдання. Календар групує
-записи за локальним ключем `YYYY-MM-DD`.
+The stored schedule shape is platform-independent: `scheduledAt`, `alarmEnabled`
+and `notificationId`. ID values follow `list-{id}` or `task-{id}`.
 
-Для alarm застосунок перевіряє майбутній час, запитує notification permission,
-на Android 12+ перевіряє `SCHEDULE_EXACT_ALARM` і створює Notifee timestamp trigger
-типу `SET_ALARM_CLOCK`. Notification є ongoing, має loop sound, full-screen action
-і кнопку зупинки. ID мають форму `list-{listId}` або `task-{taskId}`.
+| Behavior         | Android                              | iOS                                  |
+| ---------------- | ------------------------------------ | ------------------------------------ |
+| Trigger          | exact timestamp + AlarmManager       | timestamp local notification         |
+| Importance       | alarm channel, high                  | Time Sensitive                       |
+| Sound            | default, looping                     | default system sound                 |
+| Presentation     | ongoing + full-screen action         | banner/list notification             |
+| Stop             | notification action and alarm screen | notification action and alarm screen |
+| Extra permission | exact alarms on Android 12+          | none beyond notifications            |
 
-Під час перепланування попередній Notifee alarm скасовується. Для сумісності також
-виконується спроба скасувати Expo Notifications ID, створений версією 0.3.
+`configureNotifications()` creates the Android channel or iOS action category.
+`scheduleReminder()` validates future time and requests platform permission. The
+Android-only AlarmManager object is never passed to the iOS trigger.
 
-## Фотографії та теми
+On Android, `getInitialNotification()` handles cold-start navigation. On iOS,
+Notifee `PRESS` events open `/alarm`; `DELIVERED` opens the screen only while the
+application is in foreground. Background stop actions run from the early handler
+registered in `index.ts`.
 
-Системний picker не дає широкого доступу до медіатеки. Зображення стискається у
-JPEG і копіюється до приватної document directory.
+iOS intentionally does not request Critical Alert entitlement. It cannot match
+Android full-screen/looping behavior because that capability is restricted by the
+operating system.
 
-| Тип           | Каталог              | Максимальне ребро | JPEG quality |
-| ------------- | -------------------- | ----------------: | -----------: |
-| Фото завдання | `task-photos`        |           1600 px |         0.76 |
-| Власний фон   | `custom-backgrounds` |           2400 px |         0.82 |
+`expo-notifications` remains a compatibility dependency only for cancelling old
+Android notification IDs produced by version 0.3. New reminders use Notifee.
 
-Видалення task/list очищає фото. Заміна фону видаляє попередній файл. Якщо task
-видалено, поки picker відкритий, щойно створений JPEG також прибирається.
+## Images and themes
 
-## Імпорт і експорт
+ImagePicker gives access only to user-selected media. Selected content is resized,
+compressed as JPEG and copied into the private document directory.
 
-Текстовий share містить назву, прогрес і checklist та призначений для читання.
-`.sheettodo` є ZIP із `manifest.json` і JPEG у `photos/`; він переносить назву,
-icon ID, текст, стан виконання та доступні фото. Розклади, notification IDs,
-`createdAt` і власний фон не експортуються.
+| Type              | Directory            | Maximum edge | JPEG quality |
+| ----------------- | -------------------- | -----------: | -----------: |
+| Task photo        | `task-photos`        |      1600 px |         0.76 |
+| Custom background | `custom-backgrounds` |      2400 px |         0.82 |
 
-Імпорт перевіряє ZIP signature, path safety, дублікати, версію, розміри, JPEG
-markers і CRC32. Нові list/task IDs генеруються завжди. Залишено читання legacy
-JSON оригінальної вебверсії та deep links.
+Deletion and replacement clean managed files. Startup removes metadata references
+to missing files. If a task disappears while the picker is open, the newly copied
+file is removed instead of becoming an orphan.
 
-## Локалізація й адаптивність
+## Import and export
 
-Мова береться з preferences або locale пристрою (`uk`, інакше `en`). UI має
-accessibility labels/roles, safe areas, keyboard avoiding behavior, локалізований
-календар і одну або дві колонки при ширині від 760 px.
+Text share is human-readable. `.sheettodo` is a ZIP containing `manifest.json`
+and JPEG files under `photos/`. It transfers one list, task completion state and
+available photos; schedules, notification IDs, creation timestamps and custom
+background are not exported.
 
-## Безпека та приватність
+The parser validates format, version, archive size, entry count, path safety,
+duplicates, JPEG markers, declared sizes and CRC32. Legacy web JSON, older ZIP
+packages and compact deep links remain readable.
 
-- застосунок не має сервера й не надсилає дані розробнику;
-- metadata та JPEG лежать у приватному Android sandbox;
-- окремого прикладного шифрування storage немає;
-- `CAMERA`, `RECORD_AUDIO` і `SYSTEM_ALERT_WINDOW` заблоковані;
-- import input проходить структурну перевірку;
-- тимчасові exports видаляються в `finally`;
-- uninstall видаляє приватні дані.
+Temporary export files are created under cache and deleted in `finally`. A package
+photo import is compensating: if a later write fails, earlier imported files are
+removed.
 
-## Збірка та конфігурація
+## UX and adaptive layout
 
-| Профіль       | Призначення             | Artifact     |
-| ------------- | ----------------------- | ------------ |
-| `development` | development client      | internal APK |
-| `preview`     | ручне встановлення й QA | internal APK |
-| `production`  | майбутня публікація     | AAB          |
+- safe-area containers protect notches and home indicator;
+- `KeyboardAvoidingView` uses iOS padding and Android resized height;
+- focused task inputs are measured and scrolled above the keyboard;
+- one list column is used below 760 px and two above it;
+- cards and dialogs have bounded widths for large screens;
+- stable accessibility labels, roles and E2E `testID` values are present;
+- the app keeps a light system shell and offers four visual background themes.
 
-Android permissions: `SCHEDULE_EXACT_ALARM`, `USE_FULL_SCREEN_INTENT`. Package ID:
-`com.lilydotsenko.sheettodo`; scheme: `sheettodo`.
+System dark mode is not introduced in 0.5.0 because the Android behavior being
+preserved did not provide it.
 
-## Контроль якості
+## Security and privacy
 
-| Перевірка      | Команда                              | Призначення                          |
-| -------------- | ------------------------------------ | ------------------------------------ |
-| Formatting     | `npm run format:check`               | єдиний стиль                         |
-| Lint           | `npm run lint`                       | Expo/React/TypeScript rules          |
-| TypeScript     | `npm run typecheck`                  | strict type safety                   |
-| Unit tests     | `npm test`                           | domain, migration, storage, transfer |
-| Expo Doctor    | `npm run doctor`                     | сумісність SDK                       |
-| Android bundle | `npx expo export --platform android` | Metro/Hermes resolution              |
+- no backend, analytics, remote API, auth or tokens;
+- no required environment variables;
+- no app-level encryption for AsyncStorage;
+- import is treated as untrusted input;
+- ATS disallows arbitrary HTTP; local networking remains available for dev builds;
+- camera, microphone and geolocation are not requested;
+- push entitlement is removed because only local notifications are used;
+- signing keys, certificates and provisioning profiles are ignored by Git.
 
-Поточний набір містить 39 unit-тестів у 11 suites. Native UI та OS dialogs
-потребують перевірки на реальному Android.
+Data leaves the device only after the user invokes Share/Export. Uninstall removes
+the private app sandbox.
 
-## Відомі обмеження та розвиток
+## Build configuration
 
-| Напрям            | Поточний стан        | Можливий розвиток                  |
-| ----------------- | -------------------- | ---------------------------------- |
-| Синхронізація     | відсутня             | opt-in encrypted sync              |
-| Backup            | один список          | пакет усіх lists/preferences/media |
-| UI tests          | ручні                | integration/E2E tests              |
-| Orphan cleanup    | очищення відомих URI | періодичний scan каталогів         |
-| Alarm reliability | залежить від OEM     | diagnostics screen дозволів        |
-| Accessibility     | базові labels/roles  | screen reader і dynamic type QA    |
+| Profile                 | Android         | iOS                             | Purpose                        |
+| ----------------------- | --------------- | ------------------------------- | ------------------------------ |
+| `development`           | internal APK    | signed device development build | native debugging               |
+| `development-simulator` | —               | Simulator development build     | unsigned Simulator QA          |
+| `preview`               | installable APK | ad hoc IPA                      | personal/internal installation |
+| `production`            | AAB             | store-signed archive            | retained, not submitted        |
 
-## Карта вихідного коду
+Application version is `0.5.0`; Android package and iOS bundle identifier are
+`com.lilydotsenko.sheettodo`. Android `versionCode` and iOS `buildNumber` are `5`.
+No `submit` profile or automated store publication exists.
 
-| Шлях             | Призначення                                  |
-| ---------------- | -------------------------------------------- |
-| `src/app`        | routes і screen orchestration                |
-| `src/components` | повторно використовувані UI-блоки            |
-| `src/domain`     | типи, інваріанти, міграції, schedule helpers |
-| `src/state`      | App Context і keyboard scrolling             |
-| `src/services`   | storage, files, transfer, notifications      |
-| `src/i18n`       | переклади й календарна locale                |
-| `src/theme`      | theme та icon registries                     |
+## Quality control
 
-## Підсумок
+| Check              | Command                              |
+| ------------------ | ------------------------------------ |
+| Formatting         | `npm run format:check`               |
+| Lint               | `npm run lint`                       |
+| TypeScript         | `npm run typecheck`                  |
+| Unit tests         | `npm test`                           |
+| Integration        | `npm run test:integration`           |
+| Expo compatibility | `npm run doctor`                     |
+| Android bundle     | `npx expo export --platform android` |
+| iOS bundle         | `npx expo export --platform ios`     |
+| Device E2E         | `npm run test:e2e`                   |
 
-Sheet: to do має чіткий поділ UI, immutable domain, state orchestration і native
-services. Архітектура мінімізує зовнішні залежності, зберігає дані на пристрої та
-окремо захищає найризиковіші потоки: exact alarms, lifecycle JPEG і import
-недовірених пакетів.
+The repository contains 43 Jest tests in 13 suites, including notification
+configuration, iOS URI routing and an offline storage/export/import restart flow.
+Maestro covers core UI persistence, navigation/theme and deep-link import.
+
+Native permissions, photo picker, OS share sheets, exact alarm and Time Sensitive
+delivery require the physical-device matrix in `.maestro/DEVICE_CHECKLIST.md`.
+
+GitHub Actions runs non-signing checks and both platform exports. It does not build
+or publish store artifacts and does not access signing credentials.
+
+## Directory map
+
+| Path             | Role                                    |
+| ---------------- | --------------------------------------- |
+| `src/app`        | screens and routes                      |
+| `src/components` | reusable UI                             |
+| `src/domain`     | models, schedule helpers, migrations    |
+| `src/services`   | storage, files, transfer, notifications |
+| `src/state`      | application state orchestration         |
+| `src/theme`      | themes and icon registry                |
+| `plugins`        | reproducible native configuration       |
+| `.maestro`       | E2E flows and device checklist          |
+| `docs`           | install, technical and data documents   |
+
+## Known limitations
+
+- no cloud sync or multi-device merge;
+- `.sheettodo` transfers one list per file;
+- custom backgrounds are not included in list backup;
+- local notification delivery depends on OS settings;
+- iOS Personal Team builds expire after 7 days;
+- a native iPhone build requires macOS/Xcode or paid EAS signing;
+- direct file opening depends on the source application's MIME/UTI behavior.
+
+## Conclusion
+
+Version 0.5.0 extends the existing Android application to iPhone without a
+framework rewrite. Shared TypeScript remains the source of product behavior, while
+platform-specific configuration is limited, explicit and reproducible.

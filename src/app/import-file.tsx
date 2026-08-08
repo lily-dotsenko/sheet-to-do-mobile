@@ -100,6 +100,7 @@ export default function ImportFileScreen() {
                 label={t('importConfirm')}
                 loading={busy}
                 onPress={() => void finishImport(state.value)}
+                testID="import-file-confirm"
                 variant="primary"
               />
             </View>

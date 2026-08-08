@@ -1,0 +1,16 @@
+appId: com.lilydotsenko.sheettodo
+---
+- launchApp
+- tapOn:
+    id: home-themes
+- tapOn:
+    id: theme-winter
+- tapOn:
+    id: modal-close
+- tapOn:
+    id: home-calendar
+- assertVisible:
+    id: calendar-screen
+- back
+- assertVisible:
+    id: home-screen

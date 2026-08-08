@@ -10,6 +10,16 @@ describe('incoming Sheet file routing', () => {
     );
   });
 
+  test('routes an iOS Files URI to the confirmation screen', () => {
+    expect(
+      incomingFileRoute(
+        'file:///private/var/mobile/Containers/Data/Application/ABC/Documents/Inbox/My List.sheettodo',
+      ),
+    ).toBe(
+      '/import-file?uri=file%3A%2F%2F%2Fprivate%2Fvar%2Fmobile%2FContainers%2FData%2FApplication%2FABC%2FDocuments%2FInbox%2FMy%20List.sheettodo',
+    );
+  });
+
   test('does not intercept app deep links or web links', () => {
     expect(incomingFileRoute('sheettodo:///import?data=abc')).toBeNull();
     expect(incomingFileRoute('https://example.com/list')).toBeNull();

@@ -3,6 +3,7 @@ node_modules/
 
 # Expo
 .expo/
+.expo-ci/
 dist/
 web-build/
 expo-env.d.ts
@@ -11,10 +12,16 @@ expo-env.d.ts
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
+*.cer
+*.csr
+*.der
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.provisionprofile
+credentials.json
 
 # Metro
 .metro-health-check*
@@ -31,7 +38,9 @@ desktop.ini
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo

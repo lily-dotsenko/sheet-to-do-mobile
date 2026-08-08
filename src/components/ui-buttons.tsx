@@ -10,6 +10,7 @@ type ActionButtonProps = {
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
+  testID?: string;
 };
 
 export function ActionButton({
@@ -20,6 +21,7 @@ export function ActionButton({
   disabled = false,
   loading = false,
   style,
+  testID,
 }: ActionButtonProps) {
   return (
     <Pressable
@@ -28,6 +30,7 @@ export function ActionButton({
       accessibilityState={{ disabled: disabled || loading }}
       disabled={disabled || loading}
       onPress={onPress}
+      testID={testID}
       style={({ pressed }) => [
         styles.button,
         styles[variant],
@@ -57,6 +60,7 @@ type IconButtonProps = {
   disabled?: boolean;
   loading?: boolean;
   active?: boolean;
+  testID?: string;
 };
 
 export function IconButton({
@@ -68,6 +72,7 @@ export function IconButton({
   disabled = false,
   loading = false,
   active = false,
+  testID,
 }: IconButtonProps) {
   return (
     <Pressable
@@ -78,6 +83,7 @@ export function IconButton({
       hitSlop={4}
       onLongPress={onLongPress}
       onPress={onPress}
+      testID={testID}
       style={({ pressed }) => [
         styles.iconButton,
         active && styles.iconActive,
