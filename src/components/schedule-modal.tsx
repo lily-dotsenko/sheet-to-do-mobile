@@ -34,8 +34,7 @@ export function ScheduleModal({
   const [alarmEnabled, setAlarmEnabled] = useState(initialAlarmEnabled);
   const [wasVisible, setWasVisible] = useState(visible);
 
-  // Reset the local draft whenever the modal transitions from closed to open,
-  // following React's "adjust state during render" pattern instead of an effect.
+  // Each opening starts from the latest saved schedule.
   if (visible !== wasVisible) {
     setWasVisible(visible);
     if (visible) {

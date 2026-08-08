@@ -13,7 +13,7 @@ import { iconGlyph } from '@/theme/icons';
 export default function ImportScreen() {
   const params = useLocalSearchParams<{ data?: string | string[] }>();
   const router = useRouter();
-  const { importList, t } = useApp();
+  const { data, importList, t } = useApp();
   const encoded = Array.isArray(params.data) ? params.data[0] : params.data;
   const result = useMemo(() => {
     try {
@@ -42,6 +42,7 @@ export default function ImportScreen() {
             <View style={styles.actions}>
               <ActionButton label={t('cancel')} onPress={() => router.replace('/')} />
               <ActionButton
+                disabled={!data}
                 label={t('importConfirm')}
                 onPress={() => {
                   importList(result.list!);
